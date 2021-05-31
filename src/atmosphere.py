@@ -3,11 +3,14 @@
 # Universal gas constant in N*m/(kmol*K)
 _R = 8.31432e3
 
-# Acceleration due to gravity at sea-level in m/s^2
-_G0 = 9.80665
+# Acceleration due to gravity at sea-level in km/s^2
+_G0 = .00980665
 
 # Temperature at sea-level in Kelvin
 _T0 = 288.15
+
+# Effective  radius of the Earth in km
+_R0 = 6356.766
 
 # Molecular weight of various gasses ordered 0 - 9. Corresponds
 # to Table 3 in the 1976 U.S. Standard Atmosphere paper
@@ -56,8 +59,13 @@ _MOL_TEMP = {
 	0 : _T0,
 	1 : 216.65,
 	2 : 216.65,
+	3 : 228.65,
+	4 : 270.65,
+	5 : 270.65,
+	6 : 214.65,
+	7 : 186.87
 }
 
-# Get T_mb for a particular subscript
-def _getMolTemp(sub):
-	print()
+# Converts the given geometric height in km to geopotential km'
+def _geometricToGeopotentialHeight(z):
+	return (_R0 * z) / (_R0 + z)
