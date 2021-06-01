@@ -15,3 +15,7 @@ def calculateOrbitalPeriod(a):
 # Returns semi-major axis in km from apogee and perigee in km
 def calculateSemiMajorAxis(a, p):
 	return ((a + RADIUS) + (p + RADIUS)) / 2
+
+# Returns eccentricity of orbit from apogee and perigee in km
+def calculateEccentricity(a, p):
+	return ((a + RADIUS) - (p + RADIUS)) / (2 * calculateSemiMajorAxis(a, p))
