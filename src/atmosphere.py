@@ -28,7 +28,7 @@ _MOL_SCALE_TEMP_GRADIENT = [-6.5, 0, 1.0, 2.8, 0, -2.8, -2.0]
 # Molecular-scale temperature in K at various subscripts. Calculated using
 # the given sea level temperature and the molecular-scale temperature
 # gradients at each height
-_MOL_SCAL_TEMP = [288.15, 216.65, 216.65, 228.65, 270.65, 270.65, 214.65, 186.87]
+_REF_MOL_SCALE_TEMP = [288.15, 216.65, 216.65, 228.65, 270.65, 270.65, 214.65, 186.87]
 
 # Reference pressures for various subscripts. Calculated using the pressure equations in the U.S.
 # Standard Atmosphere paper. All pressures are in Pa
@@ -90,8 +90,8 @@ def _getPressureBelow86(z):
 	# Get molecular scale temp gradient corresponding to this subscript
 	molScaleTempGradient = _MOL_SCALE_TEMP_GRADIENT[subscript]
 
-	# Get molecular scale temp corresponding to this subscript
-	molScaleTemp = _MOL_SCAL_TEMP[subscript]
+	# Get reference molecular scale temp corresponding to this subscript
+	referenceMolScaleTemp = _REF_MOL_SCALE_TEMP[subscript]
 
 	# Get pressure corresponding to this subscript
 	referencePressure = _REF_PRESSURE[subscript]
@@ -105,26 +105,40 @@ def _getPressureBelow86(z):
 		exponent = (_G0 * _M0) / (_R * molScaleTempGradient)
 
 		# Calculate value notated in brackets in paper
-		bracket_value = molScaleTemp / (molScaleTemp + molScaleTempGradient * (h - referenceHeight))
+		bracketValue = referenceMolScaleTemp / (referenceMolScaleTemp + molScaleTempGradient * (h - referenceHeight))
 
-		return referencePressure * math.pow(bracket_value, exponent)
+		return referencePressure * math.pow(bracketValue, exponent)
 	else:
 		# Calculate value notated in brackets in paper
-		bracket_value = ((-_G0 * _M0) * (h - referenceHeight)) / (_R * molScaleTemp)
+		bracketValue = ((-_G0 * _M0) * (h - referenceHeight)) / (_R * referenceMolScaleTemp)
 
-		return referencePressure * math.exp(bracket_value)
+		return referencePressure * math.exp(bracketValue)
 
-# Returns pressure at given geometric height. Raises exception if z is not between 86 to 1000 km
-def _getPressureAbove86(z):
-	pass
+# Returns molecular-scale temp below 86 km. Raises exception if z is not between 0 to 86 km
+def _getMolScaleTempBelow86(z):
+	_checkBelow86(z)
 
-# Returns pressure at given geometric height
-def _getPressure(z):
-	pass
+	# Get subscript corresponding to this altitude
+	subscript = _heightToSubscript(z)
 
-# Returns density at given geometric height. Raises exception if z is not between 0 to 86 km
+	# Convert geometric to geopotential height
+	h = _geometricToGeopotentialHeight(z)
+
+	return _REF_MOL_SCALE_TEMP[subscript] + _MOL_SCALE_TEMP_GRADIENT[subscript] * (h - _REF_GEOPOTENTIAL_HEIGHT[subscript])
+
+# Returns density at given geometric height. Raises exception if z is not between 0 to 86 km.
+# Returns in units of kh/km^3 to match distance units used everywhere else in the program
 def _getDensityBelow86(z):
-	pass
+	_checkBelow86(z)
+
+	# Get subscript at given altitude
+	subscript = _heightToSubscript(z)
+
+	# Get pressure at given altitude. Convert so distance units match with other values
+	pressure = _getPressureBelow86(z) * 1000
+
+	return (pressure * _M0) / (_R * _getMolScaleTempBelow86(z))
+
 
 # Returns density at given geometric height. Raises exception if z is not between 86 to 1000 km
 def _getDensityAbove86(z):
@@ -133,3 +147,5 @@ def _getDensityAbove86(z):
 # Returns density at given geometric height. Raises exception if z is not between 0 to 1000 km
 def getDensity(z):
 	pass
+
+print(_getDensityBelow86(0))
