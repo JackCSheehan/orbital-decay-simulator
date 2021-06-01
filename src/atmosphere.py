@@ -8,9 +8,6 @@ _R = .00831432
 # Acceleration due to gravity at sea level in km/s^2
 _G0 = .00980665
 
-# Temperature at sea level in K
-_T0 = 288.15
-
 # Effective radius of the Earth in km
 _R0 = 6356.766
 
@@ -203,5 +200,3 @@ def getDensity(z):
 		return _getDensityBelow86(z)
 	else:
 		return _getDensityAbove86(z)
-
-print(getDensity(100))
