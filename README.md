@@ -10,4 +10,4 @@ Streamlit is a front-end framework designed for data scientists and machine lear
 ## References
 #### 1976 U.S. Standard Atmosphere Model
 - [Original model specification from NOAA](https://www.ngdc.noaa.gov/stp/space-weather/online-publications/miscellaneous/us-standard-atmosphere-1976/us-standard-atmosphere_st76-1562_noaa.pdf)
-- [Examples of constant derivations and curve fitting for densities above 86 km from Robert A. Braeunig](www.braeunig.us/space/atmmodel.htm)
+- [Examples of constant derivations and curve fitting for densities above 86 km from Robert A. Braeunig](http://www.braeunig.us/space/atmmodel.htm)

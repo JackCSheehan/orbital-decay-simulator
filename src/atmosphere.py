@@ -203,3 +203,5 @@ def getDensity(z):
 		return _getDensityBelow86(z)
 	else:
 		return _getDensityAbove86(z)
+
+print(getDensity(100))
