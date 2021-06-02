@@ -12,6 +12,9 @@ RADIUS = 6371
 # Number to divide period by for ground track visualization
 _PERIOD_DIV = 20
 
+# Earth's angular velocity
+_OMEGA_EARTH = 1
+
 # Throws error if given apogee is < given perigee
 def _checkExtrema(a, p):
 	if a < p:
@@ -26,6 +29,16 @@ def calculateSemiMajorAxis(a, p):
 	_checkExtrema(a, p)
 	return ((a + RADIUS) + (p + RADIUS)) / 2
 
+# Returns the semi-minor axis in km from apogee and perigee in km
+def calculateSemiMinorAxis(a, p):
+	_checkExtrema(a, p)
+
+	# Calculate semi-major axis and eccentricity
+	semiMajorAxis = calculateSemiMajorAxis(a, p)
+	eccentricity = calculateEccentricity(a, p)
+
+	return semiMajorAxis * np.sqrt(1 - eccentricity**2)
+
 # Returns eccentricity of orbit from apogee and perigee in km
 def calculateEccentricity(a, p):
 	_checkExtrema(a, p)
@@ -39,6 +52,20 @@ def calcualteDeltaTheta(omega, t):
 # Returns the angular velocity given an orbital velocity and distance from body
 def calculateAngularVelocity(v, r):
 	return v / r
+
+# Returns distance from center of ellipse given apogee, perigee, and the number of degrees from perigee
+def calculateCenterDistance(a, p, theta):
+	_checkExtrema(a, p)
+
+	# Calculate semi-axes
+	semiMajorAxis = calculateSemiMajorAxis(a, p)
+	semiMinorAxis = calculateSemiMinorAxis(a, p)
+
+	# Calculate cosine wave elements
+	amplitude = np.abs((semiMajorAxis - semiMinorAxis) / 2)
+	verticalOffset = (semiMajorAxis + semiMinorAxis) / 2
+
+	return amplitude * np.cos(2 * np.radians(theta)) + verticalOffset
 
 # Returns result of Kepler's first law given apogee, perigee, and the number of degrees from perigee
 def calculateMainFocusDistance(a, p, theta):
@@ -74,20 +101,21 @@ def calculateInitialOrbitTrackCoords(a, p, i):
 	# Calculate semi-major axis and period
 	semiMajorAxis = calculateSemiMajorAxis(a, p)
 	period = calculateOrbitalPeriod(semiMajorAxis)
+	eccentricity = calculateEccentricity(a, p)
 
 	# Array of degrees to calculate various elements for
-	theta = np.linspace(0, 360, 360)
+	theta = np.linspace(0, 360, 80)
 
 	# Calculate array of latitude coordinates
 	lat = i * np.cos(np.radians(theta))
 
-	secondsPerDegree = period / 360
-
 	velocity = calculateOrbitalVelocity(a, p, theta)
-	distance = calculateMainFocusDistance(a, p, theta)
+	distance = calculateCenterDistance(a, p, theta)
+	angularVelocity = calculateAngularVelocity(velocity, distance)
+	dt = 1 / angularVelocity
+
 
 	# Calculate array of longitude coordinates
-	lon = theta * secondsPerDegree * calculateAngularVelocity(velocity, distance)
+	lon = theta + (dt * angularVelocity)
 
-	#return pd.DataFrame({"coords" : coords})
 	return pd.DataFrame({"lat" : lat, "lon" : lon})

@@ -63,7 +63,7 @@ def main():
 	lat = orbit_col1.number_input("Starting Latitude (°)", help = "The latitude, in degrees, that your vehicle launched from")
 	lat_dir = orbit_col2.selectbox("Direction", ["East", "West"], help = "Specifies which direction your latitude is, east or west")
 
-	apogee = orbit_col1.number_input("Apogee (km)", 0, 40000, help = "The distance the farthest part of your orbit is from Earth's surface")
+	apogee = orbit_col1.number_input("Apogee (km)", 0, 1000, help = "The distance the farthest part of your orbit is from Earth's surface")
 	perigee = orbit_col2.number_input("Perigee (km)", 0, 1000, help = "The distance the closest part of your orbit is from Earth's surface")
 
 	start_date = orbit_col1.date_input("Orbit insertion date", help = "Date of insertion into starting orbit")
@@ -190,7 +190,7 @@ def main():
 	))
 
 	fig.update_geos(
-		projection_type = "orthographic",
+		projection_type = "natural earth",
 		bgcolor = "rgba(0,0,0,0)",
 		showframe = False,
 		showocean = True,
