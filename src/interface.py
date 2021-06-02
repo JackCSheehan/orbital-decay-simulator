@@ -4,9 +4,12 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import pydeck as pdk
-import plotly.figure_factory as ff
+import plotly.graph_objects as go
 import matplotlib.pyplot as plt
 import time
+from bokeh.plotting import figure, output_file, show
+from bokeh.tile_providers import CARTODBPOSITRON, get_provider
+from orbital_mechanics import *
 
 # Format string for degree inputs
 _DEGREE_FORMAT = "%d°"
@@ -60,7 +63,7 @@ def main():
 	lat = orbit_col1.number_input("Starting Latitude (°)", help = "The latitude, in degrees, that your vehicle launched from")
 	lat_dir = orbit_col2.selectbox("Direction", ["East", "West"], help = "Specifies which direction your latitude is, east or west")
 
-	apogee = orbit_col1.number_input("Apogee (km)", 0, 1000, help = "The distance the farthest part of your orbit is from Earth's surface")
+	apogee = orbit_col1.number_input("Apogee (km)", 0, 40000, help = "The distance the farthest part of your orbit is from Earth's surface")
 	perigee = orbit_col2.number_input("Perigee (km)", 0, 1000, help = "The distance the closest part of your orbit is from Earth's surface")
 
 	start_date = orbit_col1.date_input("Orbit insertion date", help = "Date of insertion into starting orbit")
@@ -87,7 +90,6 @@ def main():
 	if (obj_file == None):
 		"Please enter a 3D model before continuing."
 		#return
-
 
 	"""
 	---
@@ -176,9 +178,33 @@ def main():
 	"""
 
 	"""
-	#### Initial Orbit Track
-	`map showing ground track of initial orbit`
+	#### Initial Orbit Ground Track
 	"""
+
+	coords = calculateInitialOrbitTrackCoords(apogee, perigee, inclination)
+
+	fig = go.Figure(go.Scattergeo(
+		lat = coords["lat"],
+		lon = coords["lon"],
+		marker_color = "red",
+	))
+
+	fig.update_geos(
+		projection_type = "orthographic",
+		bgcolor = "rgba(0,0,0,0)",
+		showframe = False,
+		showocean = True,
+		oceancolor = "#7aadff",
+		lakecolor = "#7aadff",
+		rivercolor = "#7aadff",
+		showrivers = True,
+		landcolor = "#1b332a",
+		coastlinecolor = "#1b332a")
+	fig.update_layout(
+		width = 1000,
+		margin={"r":0,"t":0,"l":0,"b":0})
+
+	st.plotly_chart(fig)
 
 	"""
 	#### Telemetry Plots
