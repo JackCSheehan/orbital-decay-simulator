@@ -179,7 +179,7 @@ def main():
 	"""
 	#### Initial Orbit Ground Track
 	"""
-	coords = calculateInitialOrbitTrackCoords(100, 100, 50)
+	coords = calculateInitialOrbitTrackCoords(100, 100, 15)
 
 	
 	fig = go.Figure(go.Scattergeo(
@@ -187,21 +187,6 @@ def main():
 		lon = coords["lon"],
 		marker_color = "red",
 	))
-	"""
-	fig = go.Figure(go.Scattergeo(
-		lat = np.linspace(80, 110, 13),
-		lon = np.linspace(0, 0, 13),
-		marker_color = "red",
-	))
-	"""
-
-	'''
-	fig = go.Figure(go.Scattergeo(
-		lat = [85, 90, 85],
-		lon = [180, 270, 360],
-		marker_color = "red",
-	))'''
-
 
 	fig.update_geos(
 		projection_type = "equirectangular",

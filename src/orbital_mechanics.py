@@ -124,18 +124,28 @@ def calculateInitialOrbitTrackCoords(a, p, i):
 	# Unit vector pointing through prime meridian on XY plane
 	mHat = np.array([1, 0])
 
-	# Flag to indicate if 180 should be added to result of arccos
-	shouldAdd180 = False
+	# Flag to indicate if coordinates should be negated. Needed to correct for limited range of arccos
+	shouldNegate = False
 
+	# Create emptyarray to hold longitude angles
 	lon = np.empty(0)
+
+	# Iterate over position vectors
 	for i in range(0, int(positions.size / 2)):
+		# Calculate angle between mHat and current position vector using cosine rule
 		angle = np.degrees(np.arccos(np.dot(positions[i], mHat) / (np.linalg.norm(positions[i]))))
 
-		if lat[i] > -.3 and lat[i] < .3:
-			shouldAdd180 = not shouldAdd180
+		# Negate coordinates after index 90
+		if i == 90:
+			shouldNegate = True
 
-		if shouldAdd180:
-			angle += 180
+		# Stop negating at index 270
+		if i == 270:
+			shouldNegate = False
+
+		# Negate angle if negate flag is tripped
+		if shouldNegate:
+			angle *= -1
 
 		lon = np.append(lon, angle)
 
