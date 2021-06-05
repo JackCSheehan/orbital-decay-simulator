@@ -5,10 +5,9 @@ import pandas as pd
 import numpy as np
 import pydeck as pdk
 import plotly.graph_objects as go
+import plotly.express as px
 import matplotlib.pyplot as plt
 import time
-from bokeh.plotting import figure, output_file, show
-from bokeh.tile_providers import CARTODBPOSITRON, get_provider
 from orbital_mechanics import *
 
 # Format string for degree inputs
@@ -180,17 +179,32 @@ def main():
 	"""
 	#### Initial Orbit Ground Track
 	"""
+	coords = calculateInitialOrbitTrackCoords(100, 100, 50)
 
-	coords = calculateInitialOrbitTrackCoords(apogee, perigee, inclination)
-
+	
 	fig = go.Figure(go.Scattergeo(
 		lat = coords["lat"],
 		lon = coords["lon"],
 		marker_color = "red",
 	))
+	"""
+	fig = go.Figure(go.Scattergeo(
+		lat = np.linspace(80, 110, 13),
+		lon = np.linspace(0, 0, 13),
+		marker_color = "red",
+	))
+	"""
+
+	'''
+	fig = go.Figure(go.Scattergeo(
+		lat = [85, 90, 85],
+		lon = [180, 270, 360],
+		marker_color = "red",
+	))'''
+
 
 	fig.update_geos(
-		projection_type = "natural earth",
+		projection_type = "equirectangular",
 		bgcolor = "rgba(0,0,0,0)",
 		showframe = False,
 		showocean = True,

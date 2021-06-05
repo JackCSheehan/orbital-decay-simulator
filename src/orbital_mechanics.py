@@ -2,6 +2,7 @@
 
 import numpy as np
 import pandas as pd
+from atmosphere import *
 
 # Standard gravitational parameter of Earth in km^3/s^2
 MU = 3.986004e5
@@ -9,11 +10,11 @@ MU = 3.986004e5
 # Earth radius in km
 RADIUS = 6371
 
-# Number to divide period by for ground track visualization
-_PERIOD_DIV = 20
+# Number of seconds to step during simulation
+_TIME_STEP = 1
 
-# Earth's angular velocity
-_OMEGA_EARTH = 1
+# Number of degrees Earth turns in a second
+_OMEGA_EARTH = .004167
 
 # Throws error if given apogee is < given perigee
 def _checkExtrema(a, p):
@@ -94,28 +95,63 @@ def calculateOrbitalVelocity(a, p, theta):
 	return np.sqrt(MU * ratioDifference)
 
 # Returns Pandas dataframe of latitude and longitude coordinates for the initial orbit's ground track.
-# Takes the initial orbit's apogee, perigee, and inclination (in degrees)
+# Takes the initial orbit's apogee, perigee, inclination (in degrees), and starting longitude in degrees
 def calculateInitialOrbitTrackCoords(a, p, i):
 	_checkExtrema(a, p)
 
 	# Calculate semi-major axis and period
 	semiMajorAxis = calculateSemiMajorAxis(a, p)
+	semiMinorAxis = calculateSemiMinorAxis(a, p)
 	period = calculateOrbitalPeriod(semiMajorAxis)
 	eccentricity = calculateEccentricity(a, p)
 
 	# Array of degrees to calculate various elements for
-	theta = np.linspace(0, 360, 80)
+	theta = np.linspace(0, 360, 360)
 
 	# Calculate array of latitude coordinates
 	lat = i * np.cos(np.radians(theta))
 
-	velocity = calculateOrbitalVelocity(a, p, theta)
-	distance = calculateCenterDistance(a, p, theta)
-	angularVelocity = calculateAngularVelocity(velocity, distance)
-	dt = 1 / angularVelocity
+	# Calculate radius of orbit at each theta
+	r = calculateMainFocusDistance(a, p, theta)
 
+	# Calculate Cartesian coordinates of orbit
+	x = r * np.sin(np.radians(theta))
+	y = r * np.cos(np.radians(theta)) * np.cos(np.radians(i))
 
-	# Calculate array of longitude coordinates
-	lon = theta + (dt * angularVelocity)
+	# Get unit position vector of satellite at any given point in orbit
+	positions = np.stack((x, y), axis = -1)
+
+	# Unit vector pointing through prime meridian on XY plane
+	mHat = np.array([1, 0])
+
+	# Flag to indicate if 180 should be added to result of arccos
+	shouldAdd180 = False
+
+	lon = np.empty(0)
+	for i in range(0, int(positions.size / 2)):
+		angle = np.degrees(np.arccos(np.dot(positions[i], mHat) / (np.linalg.norm(positions[i]))))
+
+		if lat[i] > -.3 and lat[i] < .3:
+			shouldAdd180 = not shouldAdd180
+
+		if shouldAdd180:
+			angle += 180
+
+		lon = np.append(lon, angle)
 
 	return pd.DataFrame({"lat" : lat, "lon" : lon})
+
+# Returns the acceleration experienced by the given mass at the given height with the velocity,
+# drag coefficient, and reference area  
+def calculateAccelerationFromDrag(m, z, v, cd, a):
+	# Check for non-zero mass
+	if m == 0:
+		raise Exception("Mass cannot be 0")
+
+	density = getDensity(z)
+
+	# Calculate drag force
+	dragForce = .5 * density * v**2 * cd * a
+
+	# Return acceleration
+	return dragForce / m
