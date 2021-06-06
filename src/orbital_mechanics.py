@@ -103,6 +103,12 @@ def calculateNodalDisplacementAngle(dn, angle):
 	# sin(angle / 4) is used since it reaches 0 only at angle = 0 and 360
 	return np.abs((dn / 2) * np.sin(np.radians(angle) / 4))
 
+# Calculates the semi-major axis from the Vis-viva equation. Used to determine how the semi-major
+# axis of an orbit changes due to velocity changes caused by drag force. Takes the distance from
+# the body being orbited and the instantaneous orbital velocity
+def calculateSemiMajorAxisFromVisViva(r, v):
+	return -(MU * r) / (v**2 * r - 2 * MU)
+
 # Returns Pandas dataframe of latitude and longitude coordinates for the initial orbit's ground track.
 # Takes the initial orbit's apogee, perigee, inclination (in degrees), and starting longitude in degrees
 def calculateInitialOrbitTrackCoords(a, p, i):
@@ -167,7 +173,8 @@ def calculateInitialOrbitTrackCoords(a, p, i):
 	return pd.DataFrame({"lat" : lat, "lon" : lon})
 
 # Returns the acceleration experienced by the given mass at the given height with the velocity,
-# drag coefficient, and reference area  
+# drag coefficient, and reference area. Note that this uses Newton's second law F = ma and does
+# not take into account any effects of the velocity approaching the speed of light
 def calculateAccelerationFromDrag(m, z, v, cd, a):
 	# Check for non-zero mass
 	if m == 0:
