@@ -14,16 +14,20 @@ RADIUS = 6371
 _TIME_STEP = 1
 
 # Number of degrees Earth turns in a second
-_OMEGA_EARTH = .004167
+_OMEGA_EARTH = .25 / 60
 
 # Throws error if given apogee is < given perigee
 def _checkExtrema(a, p):
 	if a < p:
 		raise Exception("Apogee must be larger than or equal to perigee")
 
-# Returns the orbital given the semi-major axis in km
-def calculateOrbitalPeriod(a):
-	return 2 * np.pi * np.sqrt(a**3 / MU)
+# Returns the orbital given the apogee and perigee in km
+def calculateOrbitalPeriod(a, p):
+	_checkExtrema(a, p)
+
+	semiMajorAxis = calculateSemiMajorAxis(a, p)
+
+	return 2 * np.pi * np.sqrt(semiMajorAxis**3 / MU)
 
 # Returns semi-major axis in km from apogee and perigee in km
 def calculateSemiMajorAxis(a, p):
@@ -94,16 +98,21 @@ def calculateOrbitalVelocity(a, p, theta):
 
 	return np.sqrt(MU * ratioDifference)
 
+# Returns the angle to be added or subtracted to the longitude to correct for Earth's rotation
+def calculateNodalDisplacementAngle(dn, angle):
+	# sin(angle / 4) is used since it reaches 0 only at angle = 0 and 360
+	return np.abs((dn / 2) * np.sin(np.radians(angle) / 4))
+
 # Returns Pandas dataframe of latitude and longitude coordinates for the initial orbit's ground track.
 # Takes the initial orbit's apogee, perigee, inclination (in degrees), and starting longitude in degrees
 def calculateInitialOrbitTrackCoords(a, p, i):
 	_checkExtrema(a, p)
 
-	# Calculate semi-major axis and period
-	semiMajorAxis = calculateSemiMajorAxis(a, p)
-	semiMinorAxis = calculateSemiMinorAxis(a, p)
-	period = calculateOrbitalPeriod(semiMajorAxis)
-	eccentricity = calculateEccentricity(a, p)
+	# Calculate period of given orbit
+	period = calculateOrbitalPeriod(a, p)
+
+	# Calculate the displacement of the Earth in a single orbit
+	nodalDisplacement = period * _OMEGA_EARTH
 
 	# Array of degrees to calculate various elements for
 	theta = np.linspace(0, 360, 360)
@@ -146,6 +155,12 @@ def calculateInitialOrbitTrackCoords(a, p, i):
 		# Negate angle if negate flag is tripped
 		if shouldNegate:
 			angle *= -1
+
+		# Correct for Earth's rotation
+		if angle < 0:
+			angle += calculateNodalDisplacementAngle(nodalDisplacement, angle)
+		elif angle > 0 :
+			angle -= calculateNodalDisplacementAngle(nodalDisplacement, angle)
 
 		lon = np.append(lon, angle)
 

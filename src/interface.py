@@ -179,7 +179,7 @@ def main():
 	"""
 	#### Initial Orbit Ground Track
 	"""
-	coords = calculateInitialOrbitTrackCoords(100, 100, 15)
+	coords = calculateInitialOrbitTrackCoords(10, 0, 0)
 
 	
 	fig = go.Figure(go.Scattergeo(
