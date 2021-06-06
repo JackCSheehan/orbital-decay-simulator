@@ -58,17 +58,47 @@ def main():
 	# Create 2 columns for organizing orbit parameter data
 	orbit_col1, orbit_col2 = st.beta_columns(2)
 
-	# Lat/lon input
-	lat = orbit_col1.number_input("Starting Latitude (°)", help = "The latitude, in degrees, that your vehicle launched from")
-	lat_dir = orbit_col2.selectbox("Direction", ["East", "West"], help = "Specifies which direction your latitude is, east or west")
+	# Populate column 1 inputs
+	with orbit_col1:
+		startingLat = st.number_input("Starting Latitude (°)", -180, 180, 0, help = "The latitude, in degrees, that your vehicle launched from")
+		apogee = st.number_input("Apogee (km)", 0, 1000, help = "The distance the farthest part of your orbit is from Earth's surface")
+		start_date = st.date_input("Orbit insertion date", help = "Date of insertion into starting orbit")
 
-	apogee = orbit_col1.number_input("Apogee (km)", 0, 1000, help = "The distance the farthest part of your orbit is from Earth's surface")
-	perigee = orbit_col2.number_input("Perigee (km)", 0, 1000, help = "The distance the closest part of your orbit is from Earth's surface")
-
-	start_date = orbit_col1.date_input("Orbit insertion date", help = "Date of insertion into starting orbit")
-	state_time = orbit_col2.time_input("Orbit insertion time (UTC)", help = "Time of insertion into starting orbit in UTC. Uses 24-hour time")
+	# Populate column 2 inputs
+	with orbit_col2:
+		startingLon = st.number_input("Starting Longitude (°)", -180, 180, 0, help = "The longitude, in degrees, that your vehicle launched from")
+		perigee = st.number_input("Perigee (km)", 0, 1000, help = "The distance the closest part of your orbit is from Earth's surface")
+		state_time = st.time_input("Orbit insertion time (UTC)", help = "Time of insertion into starting orbit in UTC. Uses 24-hour time")
 
 	inclination = st.slider("Inclination (°)", -90, 90, 0, format = _DEGREE_FORMAT, help = "The angle of your orbit with respect to Earth's equatorial plane")
+
+	"""
+	#### Initial Orbit Ground Track
+	"""
+	coords = calculateInitialOrbitTrackCoords(apogee, perigee, inclination)
+
+	fig = go.Figure(go.Scattergeo(
+		lat = coords["lat"],
+		lon = coords["lon"],
+		marker_color = "red",
+	))
+
+	fig.update_geos(
+		projection_type = "equirectangular",
+		bgcolor = "rgba(0,0,0,0)",
+		showframe = False,
+		showocean = True,
+		oceancolor = "#7aadff",
+		lakecolor = "#7aadff",
+		rivercolor = "#7aadff",
+		showrivers = True,
+		landcolor = "#1b332a",
+		coastlinecolor = "#1b332a")
+	fig.update_layout(
+		width = 1000,
+		margin={"r":0,"t":0,"l":0,"b":0})
+
+	st.plotly_chart(fig)
 
 	"""
 	---
@@ -176,34 +206,6 @@ def main():
 	`map showing location of estimated landing location`
 	"""
 
-	"""
-	#### Initial Orbit Ground Track
-	"""
-	coords = calculateInitialOrbitTrackCoords(10, 0, 0)
-
-	
-	fig = go.Figure(go.Scattergeo(
-		lat = coords["lat"],
-		lon = coords["lon"],
-		marker_color = "red",
-	))
-
-	fig.update_geos(
-		projection_type = "equirectangular",
-		bgcolor = "rgba(0,0,0,0)",
-		showframe = False,
-		showocean = True,
-		oceancolor = "#7aadff",
-		lakecolor = "#7aadff",
-		rivercolor = "#7aadff",
-		showrivers = True,
-		landcolor = "#1b332a",
-		coastlinecolor = "#1b332a")
-	fig.update_layout(
-		width = 1000,
-		margin={"r":0,"t":0,"l":0,"b":0})
-
-	st.plotly_chart(fig)
 
 	"""
 	#### Telemetry Plots
