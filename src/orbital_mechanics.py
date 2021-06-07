@@ -166,6 +166,12 @@ def calculateInitialOrbitTrackCoords(a, p, i, startingLat, startingLon):
 		if shouldNegate:
 			angle *= -1
 
+		# Correct for Earth's rotation
+		if angle < 0:
+			angle += calculateNodalDisplacementAngle(nodalDisplacement, angle)
+		elif angle > 0 :
+			angle -= calculateNodalDisplacementAngle(nodalDisplacement, angle)
+
 		lon = np.append(lon, angle)
 
 		if np.isclose(lat[i], startingLat, rtol = 2e-2):

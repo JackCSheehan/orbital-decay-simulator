@@ -1,14 +1,8 @@
 # File containing Streamlit interface controls
 
 import streamlit as st
-import pandas as pd
-import numpy as np
-import pydeck as pdk
-import plotly.graph_objects as go
-import plotly.express as px
 import matplotlib.pyplot as plt
-import time
-from orbital_mechanics import *
+from plotting import *
 
 # Format string for degree inputs
 _DEGREE_FORMAT = "%d°"
@@ -79,31 +73,7 @@ def main():
 	"""
 	#### Initial Orbit Ground Track
 	"""
-	coords = calculateInitialOrbitTrackCoords(apogee, perigee, inclination, startingLat, startingLon)
-
-	fig = go.Figure(go.Scattergeo(
-		lat = coords["lat"],
-		lon = coords["lon"],
-		marker_color = coords["colors"],
-		marker_symbol = coords["markers"],
-	))
-
-	fig.update_geos(
-		projection_type = "equirectangular",
-		bgcolor = "rgba(0,0,0,0)",
-		showframe = False,
-		showocean = True,
-		oceancolor = "#7aadff",
-		lakecolor = "#7aadff",
-		rivercolor = "#7aadff",
-		showrivers = True,
-		landcolor = "#1b332a",
-		coastlinecolor = "#1b332a")
-	fig.update_layout(
-		width = 1000,
-		margin={"r":0,"t":0,"l":0,"b":0})
-
-	st.plotly_chart(fig)
+	st.plotly_chart(plotGroundTrack(apogee, perigee, inclination, startingLat, startingLon))
 
 	"""
 	---
