@@ -111,7 +111,7 @@ def calculateSemiMajorAxisFromVisViva(r, v):
 
 # Returns Pandas dataframe of latitude and longitude coordinates for the initial orbit's ground track.
 # Takes the initial orbit's apogee, perigee, inclination (in degrees), and starting longitude in degrees
-def calculateInitialOrbitTrackCoords(a, p, i):
+def calculateInitialOrbitTrackCoords(a, p, i, startingLat, startingLon):
 	_checkExtrema(a, p)
 
 	# Calculate period of given orbit
@@ -145,6 +145,10 @@ def calculateInitialOrbitTrackCoords(a, p, i):
 	# Create emptyarray to hold longitude angles
 	lon = np.empty(0)
 
+	# Longitude with corresponding latitude that lines up with launch site. Used to know how much
+	# to shift orbit by in order to line up initial orbit with launch site
+	launchSiteEquivalentLon = 0
+
 	# Iterate over position vectors
 	for i in range(0, int(positions.size / 2)):
 		# Calculate angle between mHat and current position vector using cosine rule
@@ -162,15 +166,31 @@ def calculateInitialOrbitTrackCoords(a, p, i):
 		if shouldNegate:
 			angle *= -1
 
-		# Correct for Earth's rotation
-		if angle < 0:
-			angle += calculateNodalDisplacementAngle(nodalDisplacement, angle)
-		elif angle > 0 :
-			angle -= calculateNodalDisplacementAngle(nodalDisplacement, angle)
-
 		lon = np.append(lon, angle)
 
-	return pd.DataFrame({"lat" : lat, "lon" : lon})
+		if np.isclose(lat[i], startingLat, rtol = 2e-2):
+			launchSiteEquivalentLon = angle
+
+	# Add correction to launch site to determine first full orbit after launch
+	lon -= np.abs(launchSiteEquivalentLon - startingLon) - nodalDisplacement
+	
+	# Add lat and lon of launch site to mark it on the map
+	lat = np.append(lat, startingLat)
+	lon = np.append(lon, startingLon)
+
+	# Insert color for normal ground track points
+	colors = np.full(lat.size - 1, "red")
+
+	# Append color for launch site
+	colors = np.append(colors, "yellow")
+
+	# Insert marker type for normal ground track points
+	markers = np.full(lat.size - 1, "circle")
+
+	# Append marker for launch site
+	markers = np.append(markers, "star")
+
+	return pd.DataFrame({"lat" : lat, "lon" : lon,  "colors" : colors, "markers" : markers})
 
 # Returns the acceleration experienced by the given mass at the given height with the velocity,
 # drag coefficient, and reference area. Note that this uses Newton's second law F = ma and does

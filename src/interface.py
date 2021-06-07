@@ -38,9 +38,6 @@ def main():
 	of the decay calculations. The 1976 U.S. Standard Atmosphere model is used to calculate the density at a
 	particular altitude.
 
-	*COMING SOON*: Articles on how to use the 1976 U.S. Standard Atmosphere model and how to plot ground
-	tracks!
-
 	---
 	## How to Use It
 	This simulator works by first taking in a series of parameters and data from the user. After some
@@ -60,27 +57,35 @@ def main():
 
 	# Populate column 1 inputs
 	with orbit_col1:
-		startingLat = st.number_input("Starting Latitude (°)", -180, 180, 0, help = "The latitude, in degrees, that your vehicle launched from")
+		startingLat = st.number_input("Starting Latitude (°)", -180.0, 180.0, 0.0, help = "The latitude, in degrees, that your vehicle launched from")
 		apogee = st.number_input("Apogee (km)", 0, 1000, help = "The distance the farthest part of your orbit is from Earth's surface")
 		start_date = st.date_input("Orbit insertion date", help = "Date of insertion into starting orbit")
 
 	# Populate column 2 inputs
 	with orbit_col2:
-		startingLon = st.number_input("Starting Longitude (°)", -180, 180, 0, help = "The longitude, in degrees, that your vehicle launched from")
+		startingLon = st.number_input("Starting Longitude (°)", -180.0, 180.0, 0.0, help = "The longitude, in degrees, that your vehicle launched from")
 		perigee = st.number_input("Perigee (km)", 0, 1000, help = "The distance the closest part of your orbit is from Earth's surface")
 		state_time = st.time_input("Orbit insertion time (UTC)", help = "Time of insertion into starting orbit in UTC. Uses 24-hour time")
 
-	inclination = st.slider("Inclination (°)", -90, 90, 0, format = _DEGREE_FORMAT, help = "The angle of your orbit with respect to Earth's equatorial plane")
+	inclination = st.slider("Inclination (°)", 0, 90, 0, format = _DEGREE_FORMAT, help = "The angle of your orbit with respect to Earth's equatorial plane")
+
+	# Check that inclination is valid given launch site latitude
+	if inclination < startingLat:
+		"""
+		**Orbital inclination cannot be less than starting latitude**
+		"""
+		return
 
 	"""
 	#### Initial Orbit Ground Track
 	"""
-	coords = calculateInitialOrbitTrackCoords(apogee, perigee, inclination)
+	coords = calculateInitialOrbitTrackCoords(apogee, perigee, inclination, startingLat, startingLon)
 
 	fig = go.Figure(go.Scattergeo(
 		lat = coords["lat"],
 		lon = coords["lon"],
-		marker_color = "red",
+		marker_color = coords["colors"],
+		marker_symbol = coords["markers"],
 	))
 
 	fig.update_geos(
