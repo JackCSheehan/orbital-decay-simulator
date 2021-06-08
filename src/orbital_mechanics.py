@@ -16,6 +16,9 @@ _TIME_STEP = 1
 # Number of degrees Earth turns in a second
 _OMEGA_EARTH = .25 / 60
 
+# J2 constant for Earth
+J2 = 1.08262668e-3
+
 # Throws error if given apogee is < given perigee
 def _checkExtrema(a, p):
 	if a < p:
@@ -201,7 +204,7 @@ def calculateInitialOrbitTrackCoords(a, p, i, startingLat, startingLon):
 # Returns the acceleration experienced by the given mass at the given height with the velocity,
 # drag coefficient, and reference area. Note that this uses Newton's second law F = ma and does
 # not take into account any effects of the velocity approaching the speed of light
-def calculateAccelerationFromDrag(m, z, v, cd, a):
+def calculateAccelerationFromDrag(m, z, v, cd, area):
 	# Check for non-zero mass
 	if m == 0:
 		raise Exception("Mass cannot be 0")
@@ -209,7 +212,15 @@ def calculateAccelerationFromDrag(m, z, v, cd, a):
 	density = getDensity(z)
 
 	# Calculate drag force
-	dragForce = .5 * density * v**2 * cd * a
+	dragForce = .5 * density * v**2 * cd * area
 
 	# Return acceleration
 	return dragForce / m
+
+# Returns the nodal precession rate of an orbit. Takes the semi-major axis, period, eccentricity, and
+# inclination of the orbit
+def calculateNodalPrecessionRate(semiMajorAxis, period, e, i):
+	# Calculate factors separately before returning
+	firstFactor = RADIUS**2 / (semiMajorAxis * (1 - e**2))**2
+	secondFactor = J2 * (2 * np.pi / period) * np.cos(np.radians(i))
+	return (-3 / 2) * firstFactor * secondFactor	
