@@ -2,6 +2,7 @@
 
 import streamlit as st
 import matplotlib.pyplot as plt
+from enum import Enum
 from plotting import *
 
 # Format string for degree inputs
@@ -93,7 +94,7 @@ def main():
 	# Message to show prior to 3D model upload
 	if (obj_file == None):
 		"Please enter a 3D model before continuing."
-		#return
+		return
 
 	"""
 	---
@@ -180,7 +181,6 @@ def main():
 
 	`map showing location of estimated landing location`
 	"""
-
 
 	"""
 	#### Telemetry Plots
