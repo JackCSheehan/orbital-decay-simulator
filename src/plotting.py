@@ -2,6 +2,8 @@
 
 from orbital_mechanics import *
 import plotly.graph_objects as go
+import plotly.express as px
+from model import *
 
 # Color of water on Earth maps
 _WATER_COLOR = "#7aadff"
@@ -38,5 +40,16 @@ def plotGroundTrack(a, p, i, startingLat, startingLon):
 	fig.update_layout(
 		width = 1000,
 		margin={"r":0,"t":0,"l":0,"b":0})
+
+	return fig
+
+# Returns Plotly figure of the given .obj file given an UpoloadedFile object
+def plotSpacecraft(obj):
+	# Plot craft and update layout
+	fig = px.line_3d(parseObj(obj), x = "x", y = "y", z = "z")
+	fig.update_layout (
+		height = 500,
+		margin={"r":0,"t":0,"l":0,"b":0}
+	)
 
 	return fig

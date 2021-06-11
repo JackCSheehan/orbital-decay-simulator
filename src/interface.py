@@ -1,6 +1,7 @@
 # File containing Streamlit interface controls
 
 import streamlit as st
+import plotly.express as px
 import matplotlib.pyplot as plt
 from enum import Enum
 from plotting import *
@@ -89,12 +90,14 @@ def main():
 	"""
 
 	# Create file picker to upload 3D object files
-	obj_file = st.file_uploader("3D Model of Spacecraft (.obj files only)", ".obj", help = "Help")
+	objFile = st.file_uploader("3D Model of Spacecraft (.obj files only)", ".obj", help = "Help")
 
 	# Message to show prior to 3D model upload
-	if (obj_file == None):
+	if (objFile == None):
 		"Please enter a 3D model before continuing."
 		return
+	else:
+		st.plotly_chart(plotSpacecraft(objFile))
 
 	"""
 	---
