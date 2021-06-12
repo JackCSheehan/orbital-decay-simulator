@@ -97,16 +97,16 @@ def main():
 		"Please enter a 3D model before continuing."
 		return
 	else:
-		st.plotly_chart(plotSpacecraft(objFile))
+		fig, coords = plotSpacecraft(objFile)
+		st.plotly_chart(fig)
+		f"""
+		Initial orthographic projection area: `{calculateOrthographicProjectionArea(coords["x"], coords["y"], coords["z"])}` cubic meters
+		"""
 
 	"""
 	---
 	## Part 3: Spacecraft Parameters
 	"""
-	# Render given spacecraft model
-	"#### Rendering of Given Model"
-
-	"`rendering`"
 
 	"""
 	#### Basic Information
