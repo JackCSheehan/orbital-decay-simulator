@@ -9,6 +9,9 @@ from plotting import *
 # Format string for degree inputs
 _DEGREE_FORMAT = "%d°"
 
+# Format  string for vector head inputs
+_VECTOR_FORMAT = "%.2g"
+
 # Main driver for Streamlit inputs and calling of other files' functions
 def main():
 	# Blank string needed to ensure Streamlit recognizes first multi-line string as markdown
@@ -123,25 +126,6 @@ def main():
 	drag_coefficient = craft_col2.number_input("Drag Coefficient", help = "Also know as coefficient of drag. Often approximated as 2.2 for spherical spacecraft")
 
 	"""
-	#### Tumble Axis and Rate
-	Indicate the tumble axis of your spacecraft and its rotation rate. If your spacecraft isn't tumbling,
-	simply leave RPM at 0.
-	"""
-
-	#  Create columns to organize tumble data
-	tumbleCol1, tumbleCol2 = st.beta_columns(2)
-
-	with tumbleCol1:
-		alpha = st.slider("Alpha/α (°)", 0, 360, 0, format = _DEGREE_FORMAT)
-		beta = st.slider("Beta/β (°)", 0, 360, 0, format = _DEGREE_FORMAT)
-	
-	with tumbleCol2:
-		gamma = st.slider("Gamma/γ (°)", 0, 360, 0, format = _DEGREE_FORMAT)
-		rpm = st.number_input("Rotations per Minute (RPM)", 0, help = "How many times per minute your spacecraft completes a full rotation")
-
-	st.plotly_chart(plotSpacecraft(coords, True))
-
-	"""
 	#### Center of Pressure and Center of Mass
 	Use the sliders to indicate roughly where the center of mass and center of pressure are on your
 	spacecraft.
@@ -153,18 +137,42 @@ def main():
 	# Center of mass inputs
 	with centers_col1:
 		"Center of Mass"
-		com_x_offset = st.slider("X Offset", help = "Offset from X = 0 of the center of mass")
-		com_y_offset = st.slider("Y Offset", help = "Offset from Y = 0 of the center of mass")
-		com_z_offset = st.slider("Z Offset", help = "Offset from Y = 0 of the center of mass")
+		com_x = st.slider("X", float(coords["x"].min()), float(coords["x"].max()), float(coords["x"].median()), format = _VECTOR_FORMAT, help = "X coordinate of the center of mass")
+		com_y = st.slider("Y", float(coords["y"].min()), float(coords["y"].max()), float(coords["y"].median()), format = _VECTOR_FORMAT, help = "Y coordinate of the center of mass")
+		com_z = st.slider("Z", float(coords["z"].min()), float(coords["z"].max()), float(coords["z"].median()), format = _VECTOR_FORMAT, help = "Z coordinate of the center of mass")
 
 	# Center of pressure inputs
 	with centers_col2:
 		"Center of Pressure"
-		cop_x_offset = st.slider("X Offset", key = "1", help = "Offset from X = 0 of the center of pressure")
-		cop_y_offset = st.slider("Y Offset", key = "1", help = "Offset from X = 0 of the center of pressure")
-		cop_z_offset = st.slider("Z Offset", key = "1", help = "Offset from X = 0 of the center of pressure")
+		cop_x = st.slider("X", float(coords["x"].min()), float(coords["x"].max()), float(coords["x"].median()), format = _VECTOR_FORMAT, key = "1", help = "X coordinate of the center of pressure")
+		cop_y = st.slider("Y", float(coords["y"].min()), float(coords["y"].max()), float(coords["y"].median()), format = _VECTOR_FORMAT, key = "1", help = "Y coordinate of the center of pressure")
+		cop_z = st.slider("Z", float(coords["z"].min()), float(coords["z"].max()), float(coords["z"].median()), format = _VECTOR_FORMAT, key = "1", help = "Z coordinate of the center of pressure")
 
-	"`rendering`"
+	# Plot center of mass/center of pressure
+	st.plotly_chart(plotSpacecraft(coords,
+		com = pd.DataFrame({"x" : [com_x], "y" : [com_y], "z" : [com_z]}),
+		cop = pd.DataFrame({"x" : [cop_x], "y" : [cop_y], "z" : [cop_z]})
+		)
+	)
+
+	"""
+	#### Tumble Axis and Rate
+	Indicate the tumble axis of your spacecraft and its rotation rate. If your spacecraft isn't tumbling,
+	simply leave RPM at 0.
+	"""
+
+	# Create columns to organize tumble data
+	tumbleCol1, tumbleCol2 = st.beta_columns(2)
+
+	with tumbleCol1:
+		tumbleX = st.slider("X", 0.0, 1.0, 0.0, format = _VECTOR_FORMAT, help = "X component of tumble rotation vector")
+		tumbleY = st.slider("Y", 0.0, 1.0, 0.0, format = _VECTOR_FORMAT, help = "Y component of tumble rotation vector")
+	
+	with tumbleCol2:
+		tumbleZ = st.slider("Z", 0.0, 1.0, 0.0, format = _VECTOR_FORMAT, help = "Z component of tumble rotation vector")
+		rpm = st.number_input("Rotations per Minute (RPM)", 0, help = "How many times per minute your spacecraft completes a full rotation")
+
+	st.plotly_chart(plotSpacecraft(coords, True))
 
 	"""
 	---
