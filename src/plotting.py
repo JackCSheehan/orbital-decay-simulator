@@ -18,6 +18,9 @@ _SPACECRAFT_COLOR = "#213ec4"
 _COM_COLOR = "#bf4343"
 _COP_COLOR = "#2ecbff"
 
+# Color of tumble axis
+_TUMBLE_AXIS_COLOR = "#bf4343"
+
 # Airflow vector color
 _AIRFLOW_COLOR = "#b85300"
 
@@ -56,10 +59,10 @@ def plotGroundTrack(a, p, i, startingLat, startingLon):
 	return fig
 
 # Returns Plotly figure of the given 3D coordinates of a 3D model. showAirflow indicates whether to
-# plot an airflow vector and tumbleAxisAngles is a Pandas DataFrame that indicates the coordinates
+# plot an airflow vector and tumbleVectorHead is a Pandas DataFrame that indicates the coordinates
 # of the tip of the tumble rotation axis measured from the center of mass. com and cop are Pandas
 # DataFrames representing the coordinates of the center of mass and center of pressure, respectively
-def plotSpacecraft(coords, showAirflow = False, tumbleAxisAngles = None, com = pd.DataFrame(), cop = pd.DataFrame()):
+def plotSpacecraft(coords, showAirflow = False, tumbleVectorHead = pd.DataFrame(), com = pd.DataFrame(), cop = pd.DataFrame()):
 	# Largest Y value used to determine where to put airflow vector on Y axis
 	largestY = coords["y"].max()
 
@@ -125,6 +128,24 @@ def plotSpacecraft(coords, showAirflow = False, tumbleAxisAngles = None, com = p
 				hoverinfo = "text",
 				text = "Center of Pressure",
 				marker_color = _COP_COLOR
+			)
+		)
+
+	# Add tumble axis vector if needed
+	if not tumbleVectorHead.empty:
+		# Generate vector coords
+		x = np.append(com["x"], com["x"] + tumbleVectorHead["x"])
+		y = np.append(com["y"], com["y"] + tumbleVectorHead["y"])
+		z = np.append(com["z"], com["z"] + tumbleVectorHead["z"])
+
+		data.append(
+			go.Scatter3d(
+				x = x,
+				y = y,
+				z = z,
+				hoverinfo = "text",
+				text = "Tumble Vector",
+				marker_color = _TUMBLE_AXIS_COLOR
 			)
 		)
 

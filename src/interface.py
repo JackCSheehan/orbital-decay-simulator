@@ -137,21 +137,21 @@ def main():
 	# Center of mass inputs
 	with centers_col1:
 		"Center of Mass"
-		com_x = st.slider("X", float(coords["x"].min()), float(coords["x"].max()), float(coords["x"].median()), format = _VECTOR_FORMAT, help = "X coordinate of the center of mass")
-		com_y = st.slider("Y", float(coords["y"].min()), float(coords["y"].max()), float(coords["y"].median()), format = _VECTOR_FORMAT, help = "Y coordinate of the center of mass")
-		com_z = st.slider("Z", float(coords["z"].min()), float(coords["z"].max()), float(coords["z"].median()), format = _VECTOR_FORMAT, help = "Z coordinate of the center of mass")
+		comX = st.slider("X", float(coords["x"].min()), float(coords["x"].max()), float(coords["x"].median()), format = _VECTOR_FORMAT, help = "X coordinate of the center of mass")
+		comY = st.slider("Y", float(coords["y"].min()), float(coords["y"].max()), float(coords["y"].median()), format = _VECTOR_FORMAT, help = "Y coordinate of the center of mass")
+		comZ = st.slider("Z", float(coords["z"].min()), float(coords["z"].max()), float(coords["z"].median()), format = _VECTOR_FORMAT, help = "Z coordinate of the center of mass")
 
 	# Center of pressure inputs
 	with centers_col2:
 		"Center of Pressure"
-		cop_x = st.slider("X", float(coords["x"].min()), float(coords["x"].max()), float(coords["x"].median()), format = _VECTOR_FORMAT, key = "1", help = "X coordinate of the center of pressure")
-		cop_y = st.slider("Y", float(coords["y"].min()), float(coords["y"].max()), float(coords["y"].median()), format = _VECTOR_FORMAT, key = "1", help = "Y coordinate of the center of pressure")
-		cop_z = st.slider("Z", float(coords["z"].min()), float(coords["z"].max()), float(coords["z"].median()), format = _VECTOR_FORMAT, key = "1", help = "Z coordinate of the center of pressure")
+		copX = st.slider("X", float(coords["x"].min()), float(coords["x"].max()), float(coords["x"].median()), format = _VECTOR_FORMAT, key = "1", help = "X coordinate of the center of pressure")
+		copY = st.slider("Y", float(coords["y"].min()), float(coords["y"].max()), float(coords["y"].median()), format = _VECTOR_FORMAT, key = "1", help = "Y coordinate of the center of pressure")
+		copZ = st.slider("Z", float(coords["z"].min()), float(coords["z"].max()), float(coords["z"].median()), format = _VECTOR_FORMAT, key = "1", help = "Z coordinate of the center of pressure")
 
 	# Plot center of mass/center of pressure
 	st.plotly_chart(plotSpacecraft(coords,
-		com = pd.DataFrame({"x" : [com_x], "y" : [com_y], "z" : [com_z]}),
-		cop = pd.DataFrame({"x" : [cop_x], "y" : [cop_y], "z" : [cop_z]})
+		com = pd.DataFrame({"x" : [comX], "y" : [comY], "z" : [comZ]}),
+		cop = pd.DataFrame({"x" : [copX], "y" : [copY], "z" : [copZ]})
 		)
 	)
 
@@ -172,7 +172,11 @@ def main():
 		tumbleZ = st.slider("Z", 0.0, 1.0, 0.0, format = _VECTOR_FORMAT, help = "Z component of tumble rotation vector")
 		rpm = st.number_input("Rotations per Minute (RPM)", 0, help = "How many times per minute your spacecraft completes a full rotation")
 
-	st.plotly_chart(plotSpacecraft(coords, True))
+	st.plotly_chart(plotSpacecraft(coords, True,
+		tumbleVectorHead = pd.DataFrame({"x" : [tumbleX], "y" : [tumbleY], "z" : [tumbleZ]}),
+		com = pd.DataFrame({"x" : [comX], "y" : [comY], "z" : [comZ]}),
+		)
+	)
 
 	"""
 	---
