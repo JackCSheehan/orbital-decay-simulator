@@ -43,16 +43,53 @@ def plotGroundTrack(a, p, i, startingLat, startingLon):
 
 	return fig
 
-# Returns Plotly figure of the given .obj file given an UpoloadedFile object. Also returns
-# the X, Y, and Z coordinates of each vertex parsed from the .obj as a Pandas dataframe
-def plotSpacecraft(obj):
-	# Plot craft and update layout
-	coords = parseObj(obj)
-	fig = px.scatter_3d(coords, x = "x", y = "y", z = "z")
+# Returns Plotly figure of the given 3D coordinates of a 3D model. showAirflow indicates whether to
+# plot an airflow vector and tumbleAxisAngles is a Pandas DataFrame that indicates the angles to rotate
+# the craft. If tumble axis angles are given, 
+def plotSpacecraft(coords, showAirflow = False, tumbleAxisAngles = None):
+	# Largest Y value used to determine where to put airflow vector
+	largestY = coords["y"].max()
+
+	# Add vertex coords for spacecraft model
+	data = [
+		go.Scatter3d(
+			x = coords["x"],
+			y = coords["y"],
+			z = coords["z"],
+			mode = "markers",
+			name = "Spacecraft",
+		)
+	]
+
+	# Margin for bottom of graph
+	bottomMargin = 0
+
+	# Add plot of airflow vector if needed
+	if showAirflow:
+		data.append(
+			go.Cone(
+				x = [0],
+				y = [largestY + 1],
+				z = [0],
+				u = [0],
+				v = [-1],
+				w = [0],
+				hoverinfo = "text",
+				text = "Airflow Direction",
+				showscale = False,
+			)
+		)
+
+		# Adjust bottom pad for graph where airflow is shown
+		if showAirflow:
+			bottomMargin = 100
+
+	fig = go.Figure(data)
 	fig.update_layout(
+		showlegend = False,
 		height = 500,
-		margin={"r":0,"t":0,"l":0,"b":0},
+		margin={"r" : 0, "t" : 0, "l" : 0, "b" : 0},
 		scene_camera = {"eye" : {"x" : -2, "y" : 1.2, "z" : 1.2}}
 	)
 
-	return fig, coords
+	return fig

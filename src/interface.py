@@ -92,13 +92,16 @@ def main():
 	# Create file picker to upload 3D object files
 	objFile = st.file_uploader("3D Model of Spacecraft (.obj files only)", ".obj", help = "Help")
 
+	# Will hold spacecraft coords parsed from .obj file
+	coords = None
+
 	# Message to show prior to 3D model upload
 	if (objFile == None):
 		"Please enter a 3D model before continuing."
 		return
 	else:
-		fig, coords = plotSpacecraft(objFile)
-		st.plotly_chart(fig)
+		coords = parseObj(objFile)
+		st.plotly_chart(plotSpacecraft(coords))
 		f"""
 		Initial orthographic projection area: `{calculateOrthographicProjectionArea(coords["x"], coords["y"], coords["z"])}` cubic meters
 		"""
@@ -126,14 +129,17 @@ def main():
 	"""
 
 	#  Create columns to organize tumble data
-	tumble_col1, tumble_col2 = st.beta_columns(2)
+	tumbleCol1, tumbleCol2 = st.beta_columns(2)
 
-	alpha = tumble_col1.slider("Alpha/α (°)", 0, 360, 0, format = _DEGREE_FORMAT)
-	beta = tumble_col1.slider("Beta/β (°)", 0, 360, 0, format = _DEGREE_FORMAT)
-	gamma = tumble_col1.slider("Gamma/γ (°)", 0, 360, 0, format = _DEGREE_FORMAT)
-	rpm = tumble_col1.number_input("Rotations per Minute (RPM)", 0, help = "How many times per minute your spacecraft completes a full rotation")
+	with tumbleCol1:
+		alpha = st.slider("Alpha/α (°)", 0, 360, 0, format = _DEGREE_FORMAT)
+		beta = st.slider("Beta/β (°)", 0, 360, 0, format = _DEGREE_FORMAT)
+	
+	with tumbleCol2:
+		gamma = st.slider("Gamma/γ (°)", 0, 360, 0, format = _DEGREE_FORMAT)
+		rpm = st.number_input("Rotations per Minute (RPM)", 0, help = "How many times per minute your spacecraft completes a full rotation")
 
-	tumble_col2.write("`rendering`")
+	st.plotly_chart(plotSpacecraft(coords, True))
 
 	"""
 	#### Center of Pressure and Center of Mass
