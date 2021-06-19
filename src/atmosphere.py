@@ -118,7 +118,8 @@ def _heightToSubscriptAbove86(z):
 	elif z > 750 and z <= 1000:
 		return 9
 
-# Returns pressure at given geometric height. Raises exception if z is not between 0 to 86 km
+# Returns pressure at given geometric height. Raises exception if z is not between 0 to 86 km.
+# Pressure returned is in Pascals (Pa)
 def _getPressureBelow86(z):
 	# Get subscript corresponding to height
 	subscript = _heightToSubscriptBelow86(z)
@@ -191,7 +192,8 @@ def _getDensityAbove86(z):
 	# Return polynomial calculated with correct coefficients
 	return math.exp(a * z**4 + b * z**3 + c * z**2 + d * z + e) * 1000000000
 
-# Returns density at given geometric height. Raises exception if z is not between 0 to 1000 km
+# Returns density at given geometric height. Raises exception if z is not between 0 to 1000 km.
+# Density unit it kg/km^3
 def getDensity(z):
 	_checkInStandardAtmosphereRange(z)
 

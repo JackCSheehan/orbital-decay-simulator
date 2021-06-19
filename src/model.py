@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 from io import StringIO
 from scipy.spatial import ConvexHull
+import streamlit as st
 
 # Symbol that indicates that current line represents a vertex
 _VERTEX_RECORD = "v"
@@ -22,6 +23,7 @@ _ARRAY_Z = 1
 
 # Parses .obj file given Streamlit UploadedFile object and returns a Pandas dataframe with the
 # X, Y, and Z coordinates of its vertices
+@st.cache
 def parseObj(obj):
 	# Create arrays to hold x, y, and z vertex coordinates
 	x = np.empty(0)
@@ -51,6 +53,7 @@ def _projectPoints(x, y, z):
 	return (x, y, z)
 
 # Takes the X, Y, and Z coordinates of a 3D object and return the area of the orthographic projection
+# in m^2
 def calculateOrthographicProjectionArea(x, y, z):
 	# Find all unique outer points from the projection
 	outerPoints = ConvexHull(np.stack((x, z), -1))

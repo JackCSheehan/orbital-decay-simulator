@@ -3,6 +3,7 @@
 from orbital_mechanics import *
 import plotly.graph_objects as go
 import plotly.express as px
+import streamlit as st
 from model import *
 
 # Color of water on Earth maps
@@ -26,6 +27,7 @@ _AIRFLOW_COLOR = "#b85300"
 
 # Returns Plotly figure of scatter geo plot with given apogee, perigee, starting latitude, and starting
 # longitude
+@st.cache
 def plotGroundTrack(a, p, i, startingLat, startingLon):
 	# Calculate ground track coordinates
 	coords = calculateInitialOrbitTrackCoords(a, p, i, startingLat, startingLon)
@@ -62,6 +64,7 @@ def plotGroundTrack(a, p, i, startingLat, startingLon):
 # plot an airflow vector and tumbleVectorHead is a Pandas DataFrame that indicates the coordinates
 # of the tip of the tumble rotation axis measured from the center of mass. com and cop are Pandas
 # DataFrames representing the coordinates of the center of mass and center of pressure, respectively
+@st.cache
 def plotSpacecraft(coords, showAirflow = False, tumbleVectorHead = pd.DataFrame(), com = pd.DataFrame(), cop = pd.DataFrame()):
 	# Largest Y value used to determine where to put airflow vector on Y axis
 	largestY = coords["y"].max()
@@ -82,9 +85,6 @@ def plotSpacecraft(coords, showAirflow = False, tumbleVectorHead = pd.DataFrame(
 		)
 	]
 
-	# Margin for bottom of graph
-	bottomMargin = 0
-
 	# Add plot of airflow vector if needed
 	if showAirflow:
 		data.append(
@@ -100,10 +100,6 @@ def plotSpacecraft(coords, showAirflow = False, tumbleVectorHead = pd.DataFrame(
 				showscale = False,
 			)
 		)
-
-		# Adjust bottom pad for graph where airflow is shown
-		if showAirflow:
-			bottomMargin = 100
 
 	# Add center of mass point if needed
 	if not com.empty:

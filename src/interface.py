@@ -3,8 +3,14 @@
 import streamlit as st
 import plotly.express as px
 import matplotlib.pyplot as plt
+from bokeh.plotting import figure
+from bokeh.io import curdoc
 from enum import Enum
 from plotting import *
+import time
+from datetime import timedelta
+from datetime import datetime
+import altair as alt
 
 # Format string for degree inputs
 _DEGREE_FORMAT = "%d°"
@@ -58,13 +64,13 @@ def main():
 	with orbit_col1:
 		startingLat = st.number_input("Starting Latitude (°)", -180.0, 180.0, 0.0, help = "The latitude, in degrees, that your vehicle launched from")
 		apogee = st.number_input("Apogee (km)", 0, 1000, help = "The distance the farthest part of your orbit is from Earth's surface")
-		start_date = st.date_input("Orbit insertion date", help = "Date of insertion into starting orbit")
+		startDate = st.date_input("Orbit insertion date", help = "Date of insertion into starting orbit")
 
 	# Populate column 2 inputs
 	with orbit_col2:
 		startingLon = st.number_input("Starting Longitude (°)", -180.0, 180.0, 0.0, help = "The longitude, in degrees, that your vehicle launched from")
 		perigee = st.number_input("Perigee (km)", 0, 1000, help = "The distance the closest part of your orbit is from Earth's surface")
-		state_time = st.time_input("Orbit insertion time (UTC)", help = "Time of insertion into starting orbit in UTC. Uses 24-hour time")
+		startTime = st.time_input("Orbit insertion time (UTC)", help = "Time of insertion into starting orbit in UTC. Uses 24-hour time")
 
 	inclination = st.slider("Inclination (°)", 0, 90, 0, format = _DEGREE_FORMAT, help = "The angle of your orbit with respect to Earth's equatorial plane")
 
@@ -122,7 +128,7 @@ def main():
 	# Create columns to organize spacecraft parameter inputs
 	craft_col1, craft_col2 = st.beta_columns(2)
 
-	mass = craft_col1.number_input("Mass (kg)", help = "The constant mass of your spacecraft")
+	mass = craft_col1.number_input("Mass (kg)", 1, help = "The constant mass of your spacecraft")
 	drag_coefficient = craft_col2.number_input("Drag Coefficient", help = "Also know as coefficient of drag. Often approximated as 2.2 for spherical spacecraft")
 
 	"""
@@ -187,21 +193,26 @@ def main():
 	with st.spinner("Please wait while your simulation is being run..."):
 		pass
 
-	f"""
-	#### Estimated Entry Interface
+	if st.button("Simulate"):
+		elapsedSeconds = simulateOrbitalDecay(apogee, perigee, inclination, mass, drag_coefficient, .093)
 
-	Over `lat° E`, `lon° N` at `00:00` UTC
+		f"""
+		#### Estimated Entry Interface
 
-	`map showing final orbit and location of estimated entry interface`
-	"""
+		Over `lat° E`, `lon° N` at `00:00` UTC
 
-	f"""
-	#### Estimated Landing
+		`map showing final orbit and location of estimated entry interface`
+		"""
+		startDatetime = datetime.combine(startDate, startTime)
+		landingDate = startDatetime + timedelta(seconds = elapsedSeconds)
+		landingDateStr = landingDate.strftime("%B %d, %Y at %H:%M:%S %Z")
+		f"""
+		#### Estimated Landing
 
-	At `lat° E`, `lon° N` at `00:00` UTC
+		At `lat° E`, `lon° N` on `{landingDateStr}`
 
-	`map showing location of estimated landing location`
-	"""
+		`map showing location of estimated landing location`
+		"""
 
 	"""
 	#### Telemetry Plots

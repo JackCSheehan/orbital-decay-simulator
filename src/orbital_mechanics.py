@@ -2,6 +2,7 @@
 
 import numpy as np
 import pandas as pd
+import streamlit as st
 from atmosphere import *
 
 # Standard gravitational parameter of Earth in km^3/s^2
@@ -18,6 +19,9 @@ _OMEGA_EARTH = .25 / 60
 
 # J2 constant for Earth
 J2 = 1.08262668e-3
+
+# Kilometer altitude to considerentry interface
+_ENTRY_INTERFACE = 120
 
 # Throws error if given apogee is < given perigee
 def _checkExtrema(a, p):
@@ -89,6 +93,15 @@ def calculateMainFocusDistance(a, p, theta):
 
 	return numerator / denominator
 
+# Returns current distance from main focus of elliptical orbit given the semi-major axis,
+# eccentricity, and angle theta from the perigee
+def calculateMainFocusDistanceFromSemiMajorAxis(semiMajorAxis, eccentricity, theta):
+	# Calculate numerator and denominator separately of the equation represented by Kepler's first law
+	numerator = semiMajorAxis * (1 - eccentricity**2)
+	denominator = 1 + eccentricity * np.cos(np.radians(theta))
+
+	return numerator / denominator
+
 # Calculates orbital velocity at a given angle theta from perigee given apogee and perigee
 def calculateOrbitalVelocity(a, p, theta):
 	_checkExtrema(a, p)
@@ -96,6 +109,14 @@ def calculateOrbitalVelocity(a, p, theta):
 	# Calculate other elements needed
 	semiMajorAxis = calculateSemiMajorAxis(a, p)
 	distance = calculateMainFocusDistance(a, p, theta)
+
+	ratioDifference = (2 / distance) - (1 / semiMajorAxis)
+
+	return np.sqrt(MU * ratioDifference)
+
+# Returns orbital velocity in km/s from semi-major axis
+def calculateVelocityFromSemiMajorAxis(semiMajorAxis, eccentricity, theta):
+	distance = calculateMainFocusDistanceFromSemiMajorAxis(semiMajorAxis, eccentricity, theta)
 
 	ratioDifference = (2 / distance) - (1 / semiMajorAxis)
 
@@ -114,6 +135,7 @@ def calculateSemiMajorAxisFromVisViva(r, v):
 
 # Returns Pandas dataframe of latitude and longitude coordinates for the initial orbit's ground track.
 # Takes the initial orbit's apogee, perigee, inclination (in degrees), and starting longitude in degrees
+@st.cache
 def calculateInitialOrbitTrackCoords(a, p, i, startingLat, startingLon):
 	_checkExtrema(a, p)
 
@@ -214,13 +236,70 @@ def calculateAccelerationFromDrag(m, z, v, cd, area):
 	# Calculate drag force
 	dragForce = .5 * density * v**2 * cd * area
 
+	# Adjust units since Newtons use meters as distance unit and km are used everywhere else
+	dragForce /= 1000
+
 	# Return acceleration
 	return dragForce / m
 
 # Returns the nodal precession rate of an orbit. Takes the semi-major axis, period, eccentricity, and
 # inclination of the orbit
-def calculateNodalPrecessionRate(semiMajorAxis, period, e, i):
+def calculateNodalPrecessionRate(semiMajorAxis, period, eccentricity, i):
 	# Calculate factors separately before returning
-	firstFactor = RADIUS**2 / (semiMajorAxis * (1 - e**2))**2
+	firstFactor = RADIUS**2 / (semiMajorAxis * (1 - eccentricity**2))**2
 	secondFactor = J2 * (2 * np.pi / period) * np.cos(np.radians(i))
 	return (-3 / 2) * firstFactor * secondFactor	
+
+# Main driver for orbital decay simulation. Takes initial apogee, perigee, and inclination
+@st.cache
+def simulateOrbitalDecay(a, p, i, m, cd, area):
+	# Holds all telemetry data from simulation
+	telemetry = {"time" : [], "apogee" : [], "perigee" : [], "semiMajorAxis" : [], "altitude" : [], "velocity" : []}
+
+	# Initial parameters
+	theta = 0
+	time = 0
+	distance = calculateMainFocusDistance(a, p, theta)
+	altitude = distance - RADIUS
+	eccentricity = calculateEccentricity(a, p)
+	semiMajorAxis = calculateSemiMajorAxis(a, p)
+	totalDragAcceleration = 0
+
+	timeOfInterface = 0
+
+	# Main simulation loop
+	while altitude >= 0:
+		#telemetry["time"].append(time)
+		#telemetry["altitude"].append(altitude)
+
+		# Calculate updated elements
+		distance = calculateMainFocusDistance(a, p, theta)
+		velocity = calculateOrbitalVelocity(a, p, theta)
+		altitude = distance - RADIUS
+
+		if altitude <= 0:
+			break
+
+		velocity -= calculateAccelerationFromDrag(m, altitude, velocity, cd, area)
+		
+		theta += calculateAngularVelocity(velocity, distance)
+		semiMajorAxis = calculateSemiMajorAxisFromVisViva(distance, velocity)
+		
+		# Recalculate apogee and perigee for next iteration
+		a = semiMajorAxis * (1 + eccentricity) - RADIUS
+		p = semiMajorAxis * (1 - eccentricity) - RADIUS
+
+		if a <= 0 or p <= 0 or a < p:
+			break
+
+		if altitude <= _ENTRY_INTERFACE:
+			timeOfInterface = time
+
+		time += 1
+	return time
+
+#simulateOrbitalDecay(200, 200, 0, 10000, 2.2, .6)
+
+# Calculate sample altitude/time and vel/time to test function
+# Check density function
+# Function to calc. accel is producing numbers way too big
