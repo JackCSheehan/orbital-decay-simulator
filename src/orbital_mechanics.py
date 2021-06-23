@@ -133,20 +133,15 @@ def calculateNodalDisplacementAngle(dn, angle):
 def calculateSemiMajorAxisFromVisViva(r, v):
 	return -(MU * r) / (v**2 * r - 2 * MU)
 
-# Returns Pandas dataframe of latitude and longitude coordinates for the initial orbit's ground track.
-# Takes the initial orbit's apogee, perigee, inclination (in degrees), and starting longitude in degrees
+# Returns the longitude that the spacecraft is above given the orbit's apogee, perigee,
+# inclination, and angle theta from perigee
 @st.cache
-def calculateInitialOrbitTrackCoords(a, p, i, startingLat, startingLon):
-	_checkExtrema(a, p)
-
+def calculateInstantaneousLongitude(a, p, i, theta):
 	# Calculate period of given orbit
 	period = calculateOrbitalPeriod(a, p)
 
 	# Calculate the displacement of the Earth in a single orbit
 	nodalDisplacement = period * _OMEGA_EARTH
-
-	# Array of degrees to calculate various elements for
-	theta = np.linspace(0, 360, 360)
 
 	# Calculate array of latitude coordinates
 	lat = i * np.cos(np.radians(theta))
@@ -158,14 +153,39 @@ def calculateInitialOrbitTrackCoords(a, p, i, startingLat, startingLon):
 	x = r * np.sin(np.radians(theta))
 	y = r * np.cos(np.radians(theta)) * np.cos(np.radians(i))
 
-	# Get unit position vector of satellite at any given point in orbit
-	positions = np.stack((x, y), axis = -1)
+	position = np.array([x, y])
 
 	# Unit vector pointing through prime meridian on XY plane
 	mHat = np.array([1, 0])
 
 	# Flag to indicate if coordinates should be negated. Needed to correct for limited range of arccos
 	shouldNegate = False
+
+	# Calculate angle between mHat and current position vector using cosine rule
+	angle = np.degrees(np.arccos(np.dot(position, mHat) / (np.linalg.norm(position))))
+
+	if theta >= 90 and theta <= 270:
+		angle -= 180
+
+	# Correct for Earth's rotation
+	if angle < 0:
+		angle += calculateNodalDisplacementAngle(nodalDisplacement, angle)
+	elif angle > 0 :
+		angle -= calculateNodalDisplacementAngle(nodalDisplacement, angle)
+
+	return angle
+
+# Returns Pandas dataframe of latitude and longitude coordinates for the initial orbit's ground track.
+# Takes the initial orbit's apogee, perigee, inclination (in degrees), and starting longitude in degrees
+@st.cache
+def calculateInitialOrbitTrackCoords(a, p, i, startingLat, startingLon):
+	_checkExtrema(a, p)
+
+	# Array of degrees to calculate various elements for
+	theta = np.linspace(0, 360, 360)
+
+	# Calculate array of latitude coordinates
+	lat = i * np.cos(np.radians(theta))
 
 	# Create emptyarray to hold longitude angles
 	lon = np.empty(0)
@@ -175,32 +195,19 @@ def calculateInitialOrbitTrackCoords(a, p, i, startingLat, startingLon):
 	launchSiteEquivalentLon = 0
 
 	# Iterate over position vectors
-	for i in range(0, int(positions.size / 2)):
-		# Calculate angle between mHat and current position vector using cosine rule
-		angle = np.degrees(np.arccos(np.dot(positions[i], mHat) / (np.linalg.norm(positions[i]))))
-
-		# Negate coordinates after index 90
-		if i == 90:
-			shouldNegate = True
-
-		# Stop negating at index 270
-		if i == 270:
-			shouldNegate = False
-
-		# Negate angle if negate flag is tripped
-		if shouldNegate:
-			angle *= -1
-
-		# Correct for Earth's rotation
-		if angle < 0:
-			angle += calculateNodalDisplacementAngle(nodalDisplacement, angle)
-		elif angle > 0 :
-			angle -= calculateNodalDisplacementAngle(nodalDisplacement, angle)
+	for t in range(len(theta)):
+		angle = calculateInstantaneousLongitude(a, p, i, t)
 
 		lon = np.append(lon, angle)
 
-		if np.isclose(lat[i], startingLat, rtol = 2e-2):
+		if np.isclose(lat[int(t)], startingLat, rtol = 2e-2):
 			launchSiteEquivalentLon = angle
+
+	# Calculate period of given orbit
+	period = calculateOrbitalPeriod(a, p)
+
+	# Calculate the displacement of the Earth in a single orbit
+	nodalDisplacement = period * _OMEGA_EARTH
 
 	# Add correction to launch site to determine first full orbit after launch
 	lon -= np.abs(launchSiteEquivalentLon - startingLon) + nodalDisplacement
@@ -237,7 +244,7 @@ def calculateAccelerationFromDrag(m, z, v, cd, area):
 	dragForce = .5 * density * v**2 * cd * area
 
 	# Adjust units since Newtons use meters as distance unit and km are used everywhere else
-	dragForce /= 1000
+	#dragForce /= 1000
 
 	# Return acceleration
 	return dragForce / m
@@ -253,9 +260,6 @@ def calculateNodalPrecessionRate(semiMajorAxis, period, eccentricity, i):
 # Main driver for orbital decay simulation. Takes initial apogee, perigee, and inclination
 @st.cache
 def simulateOrbitalDecay(a, p, i, m, cd, area):
-	# Holds all telemetry data from simulation
-	telemetry = {"time" : [], "apogee" : [], "perigee" : [], "semiMajorAxis" : [], "altitude" : [], "velocity" : []}
-
 	# Initial parameters
 	theta = 0
 	time = 0
@@ -267,11 +271,10 @@ def simulateOrbitalDecay(a, p, i, m, cd, area):
 
 	timeOfInterface = 0
 
+	reachedInterface = False
+
 	# Main simulation loop
 	while altitude >= 0:
-		#telemetry["time"].append(time)
-		#telemetry["altitude"].append(altitude)
-
 		# Calculate updated elements
 		distance = calculateMainFocusDistance(a, p, theta)
 		velocity = calculateOrbitalVelocity(a, p, theta)
@@ -280,6 +283,7 @@ def simulateOrbitalDecay(a, p, i, m, cd, area):
 		if altitude <= 0:
 			break
 
+		# Update velocity based on the acceleration due to atmospheric drag
 		velocity -= calculateAccelerationFromDrag(m, altitude, velocity, cd, area)
 		
 		theta += calculateAngularVelocity(velocity, distance)
@@ -289,17 +293,16 @@ def simulateOrbitalDecay(a, p, i, m, cd, area):
 		a = semiMajorAxis * (1 + eccentricity) - RADIUS
 		p = semiMajorAxis * (1 - eccentricity) - RADIUS
 
-		if a <= 0 or p <= 0 or a < p:
+		if a <= 0 or p <= 0:
 			break
-
-		if altitude <= _ENTRY_INTERFACE:
+		print(a)
+		# Indicate when entry interface reached
+		if altitude <= _ENTRY_INTERFACE and not reachedInterface:
 			timeOfInterface = time
+			reachedInterface = True
 
 		time += 1
-	return time
 
-#simulateOrbitalDecay(200, 200, 0, 10000, 2.2, .6)
+	lon = calculateInstantaneousLongitude(a, p, i, theta)
 
-# Calculate sample altitude/time and vel/time to test function
-# Check density function
-# Function to calc. accel is producing numbers way too big
+	return (timeOfInterface, time, lon)

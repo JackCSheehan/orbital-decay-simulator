@@ -194,54 +194,29 @@ def main():
 		pass
 
 	if st.button("Simulate"):
-		elapsedSeconds = simulateOrbitalDecay(apogee, perigee, inclination, mass, drag_coefficient, .093)
+		interfaceElapsedSeconds, totalElapsedSeconds, lon = simulateOrbitalDecay(apogee, perigee, inclination, mass, drag_coefficient, .000105)
+		startDatetime = datetime.combine(startDate, startTime)
+
+		interfaceDate = startDatetime + timedelta(seconds = interfaceElapsedSeconds)
+		interfaceDateStr = interfaceDate.strftime("%B %d, %Y at %H:%M:%S %Z")
 
 		f"""
 		#### Estimated Entry Interface
 
-		Over `lat° E`, `lon° N` at `00:00` UTC
+		Over `lat° E`, `lon° longitude` at `{interfaceDateStr}` UTC
 
 		`map showing final orbit and location of estimated entry interface`
 		"""
-		startDatetime = datetime.combine(startDate, startTime)
-		landingDate = startDatetime + timedelta(seconds = elapsedSeconds)
+
+		landingDate = startDatetime + timedelta(seconds = totalElapsedSeconds)
 		landingDateStr = landingDate.strftime("%B %d, %Y at %H:%M:%S %Z")
 		f"""
 		#### Estimated Landing
 
-		At `lat° E`, `lon° N` on `{landingDateStr}`
+		At `lat° E`, `{lon}° longitude` on `{landingDateStr}`
 
 		`map showing location of estimated landing location`
 		"""
-
-	"""
-	#### Telemetry Plots
-	`vel/time plot`
-
-	`semi-major axis/time`
-
-	`period/time`
-
-	`apogee/time`
-
-	`perigee/time`
-
-	`drag force acceleration/time`
-
-	`eccentricity/time`
-
-	`inclination/time`
-
-	`latitude/time`
-
-	`longitude/time`
-	"""
-
-	"""
-	#### Telemetry Table
-
-	`display of telemetry in table from Pandas dataframe`
-	"""
 
 if __name__ == "__main__":
 	main()
