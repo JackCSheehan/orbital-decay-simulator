@@ -133,6 +133,9 @@ def calculateNodalDisplacementAngle(dn, angle):
 def calculateSemiMajorAxisFromVisViva(r, v):
 	return -(MU * r) / (v**2 * r - 2 * MU)
 
+# Returns offset degree for an orbit given
+#def calculateFirstOrbitLongitudeOffset()
+
 # Returns the longitude that the spacecraft is above given the orbit's apogee, perigee,
 # inclination, and angle theta from perigee
 @st.cache
@@ -190,8 +193,6 @@ def calculateInitialOrbitTrackCoords(a, p, i, startingLat, startingLon):
 	# Create emptyarray to hold longitude angles
 	lon = np.empty(0)
 
-	# Longitude with corresponding latitude that lines up with launch site. Used to know how much
-	# to shift orbit by in order to line up initial orbit with launch site
 	launchSiteEquivalentLon = 0
 
 	# Iterate over position vectors
@@ -220,7 +221,7 @@ def calculateInitialOrbitTrackCoords(a, p, i, startingLat, startingLon):
 	colors = np.full(lat.size - 1, "red")
 
 	# Append color for launch site
-	colors = np.append(colors, "yellow")
+	colors = np.append(colors, "navy")
 
 	# Insert marker type for normal ground track points
 	markers = np.full(lat.size - 1, "circle")
@@ -243,23 +244,12 @@ def calculateAccelerationFromDrag(m, z, v, cd, area):
 	# Calculate drag force
 	dragForce = .5 * density * v**2 * cd * area
 
-	# Adjust units since Newtons use meters as distance unit and km are used everywhere else
-	#dragForce /= 1000
-
 	# Return acceleration
 	return dragForce / m
 
-# Returns the nodal precession rate of an orbit. Takes the semi-major axis, period, eccentricity, and
-# inclination of the orbit
-def calculateNodalPrecessionRate(semiMajorAxis, period, eccentricity, i):
-	# Calculate factors separately before returning
-	firstFactor = RADIUS**2 / (semiMajorAxis * (1 - eccentricity**2))**2
-	secondFactor = J2 * (2 * np.pi / period) * np.cos(np.radians(i))
-	return (-3 / 2) * firstFactor * secondFactor	
-
 # Main driver for orbital decay simulation. Takes initial apogee, perigee, and inclination
 @st.cache
-def simulateOrbitalDecay(a, p, i, m, cd, area):
+def simulateOrbitalDecay(a, p, i, m, cd, area, startingLon, timeStep):
 	# Initial parameters
 	theta = 0
 	time = 0
@@ -267,42 +257,53 @@ def simulateOrbitalDecay(a, p, i, m, cd, area):
 	altitude = distance - RADIUS
 	eccentricity = calculateEccentricity(a, p)
 	semiMajorAxis = calculateSemiMajorAxis(a, p)
-	totalDragAcceleration = 0
+	period = calculateOrbitalPeriod(a, p)
 
-	timeOfInterface = 0
-
-	reachedInterface = False
+	telemetry = {"time" : [], "dragAcceleration" : [], "period" : [], "altitude" : []}
 
 	# Main simulation loop
 	while altitude >= 0:
-		# Calculate updated elements
+		period = calculateOrbitalPeriod(a, p)
 		distance = calculateMainFocusDistance(a, p, theta)
 		velocity = calculateOrbitalVelocity(a, p, theta)
 		altitude = distance - RADIUS
 
-		if altitude <= 0:
+		if altitude <= 0 or altitude > 1000:
 			break
 
 		# Update velocity based on the acceleration due to atmospheric drag
-		velocity -= calculateAccelerationFromDrag(m, altitude, velocity, cd, area)
+		dragAcceleration = calculateAccelerationFromDrag(m, altitude, velocity, cd, area)
+		velocity -=  timeStep * dragAcceleration
 		
-		theta += calculateAngularVelocity(velocity, distance)
+		theta +=  timeStep * calculateAngularVelocity(velocity, distance)
 		semiMajorAxis = calculateSemiMajorAxisFromVisViva(distance, velocity)
 		
 		# Recalculate apogee and perigee for next iteration
 		a = semiMajorAxis * (1 + eccentricity) - RADIUS
 		p = semiMajorAxis * (1 - eccentricity) - RADIUS
 
-		if a <= 0 or p <= 0:
+		telemetry["time"].append(time)
+		telemetry["dragAcceleration"].append(dragAcceleration)
+		telemetry["period"].append(period)
+		telemetry["altitude"].append(altitude)
+
+		if a <= 0 or p <= 0 or a < p:
 			break
-		print(a)
-		# Indicate when entry interface reached
-		if altitude <= _ENTRY_INTERFACE and not reachedInterface:
-			timeOfInterface = time
-			reachedInterface = True
 
-		time += 1
+		time += timeStep
 
-	lon = calculateInstantaneousLongitude(a, p, i, theta)
+	# Make sure apogee and perigee aren't negative
+	if a < 0:
+		a = 0
+	if p < 0:
+		p = 0
 
-	return (timeOfInterface, time, lon)
+	# Try to create dataframe from telemetry if there is not too much data
+	telemetryDataFrame = None
+
+	try:
+		telemetryDataFrame = pd.DataFrame(telemetry)
+	except:
+		pass
+
+	return (time, telemetryDataFrame)

@@ -28,34 +28,20 @@ _AIRFLOW_COLOR = "#b85300"
 # Returns Plotly figure of scatter geo plot with given apogee, perigee, starting latitude, and starting
 # longitude
 @st.cache
-def plotGroundTrack(a, p, i, startingLat, startingLon):
-	# Calculate ground track coordinates
-	coords = calculateInitialOrbitTrackCoords(a, p, i, startingLat, startingLon)
-
+def plotGroundTrack(coords):
 	# Create plotly figure
-	fig = go.Figure(go.Scattergeo(
+	fig = go.Figure(go.Scattermapbox(
+		mode = "markers",
 		lat = coords["lat"],
 		lon = coords["lon"],
 		marker_color = coords["colors"],
-		marker_symbol = coords["markers"],
 	))
 
-	# Set map settings
-	fig.update_geos(
-		projection_type = "equirectangular",
-		bgcolor = "rgba(0,0,0,0)",
-		showframe = False,
-		showocean = True,
-		oceancolor = _WATER_COLOR,
-		lakecolor = _WATER_COLOR,
-		rivercolor = _WATER_COLOR,
-		showrivers = True,
-		landcolor = _LAND_COLOR,
-		coastlinecolor = _LAND_COLOR
-	)
 	fig.update_layout(
 		width = 1000,
-		margin={"r":0,"t":0,"l":0,"b":0}
+		mapbox = {"style" : "open-street-map"},
+		showlegend = False,
+		margin = {"l" : 0, "r" : 0, "b" : 0, "t" : 0}
 	)
 
 	return fig
@@ -152,5 +138,27 @@ def plotSpacecraft(coords, showAirflow = False, tumbleVectorHead = pd.DataFrame(
 		margin={"r" : 0, "t" : 0, "l" : 0, "b" : 0},
 		scene_camera = {"eye" : {"x" : -2, "y" : 1.2, "z" : 1.2}}
 	)
+
+	return fig
+
+# Returns Plotly figure showing possible landing area. Takes inclination of final orbit
+def plotPossibleLandingArea(i):
+	# Create plotly figure
+	fig = go.Figure(go.Scattermapbox(
+		mode = "lines",
+		fill = "toself",
+		lat = [i, i, -i, -i],
+		lon = [-180, 180, 180, -180],
+		marker = {"opacity" : [0, 0, 0, 0]},
+		),
+	)
+
+	fig.update_layout(
+		width = 1000,
+		mapbox = {"style" : "open-street-map"},
+		showlegend = False,
+		margin = {"l" : 0, "r" : 0, "b" : 0, "t" : 0}
+	)
+
 
 	return fig
