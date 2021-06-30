@@ -146,9 +146,6 @@ def calculateInstantaneousLongitude(a, p, i, theta):
 	# Calculate the displacement of the Earth in a single orbit
 	nodalDisplacement = period * _OMEGA_EARTH
 
-	# Calculate array of latitude coordinates
-	lat = i * np.cos(np.radians(theta))
-
 	# Calculate radius of orbit at each theta
 	r = calculateMainFocusDistance(a, p, theta)
 
@@ -168,7 +165,7 @@ def calculateInstantaneousLongitude(a, p, i, theta):
 	angle = np.degrees(np.arccos(np.dot(position, mHat) / (np.linalg.norm(position))))
 
 	if theta >= 90 and theta <= 270:
-		angle -= 180
+		angle -= (180) - np.cos(np.radians(i))
 
 	# Correct for Earth's rotation
 	if angle < 0:
@@ -201,7 +198,7 @@ def calculateInitialOrbitTrackCoords(a, p, i, startingLat, startingLon):
 
 		lon = np.append(lon, angle)
 
-		if np.isclose(lat[int(t)], startingLat, rtol = 2e-2):
+		if np.isclose(lat[t], startingLat, rtol = 2e-2):
 			launchSiteEquivalentLon = angle
 
 	# Calculate period of given orbit
@@ -217,19 +214,7 @@ def calculateInitialOrbitTrackCoords(a, p, i, startingLat, startingLon):
 	lat = np.append(lat, startingLat)
 	lon = np.append(lon, startingLon)
 
-	# Insert color for normal ground track points
-	colors = np.full(lat.size - 1, "red")
-
-	# Append color for launch site
-	colors = np.append(colors, "navy")
-
-	# Insert marker type for normal ground track points
-	markers = np.full(lat.size - 1, "circle")
-
-	# Append marker for launch site
-	markers = np.append(markers, "star")
-
-	return pd.DataFrame({"lat" : lat, "lon" : lon,  "colors" : colors, "markers" : markers})
+	return pd.DataFrame({"lat" : lat, "lon" : lon})
 
 # Returns the acceleration experienced by the given mass at the given height with the velocity,
 # drag coefficient, and reference area. Note that this uses Newton's second law F = ma and does

@@ -25,21 +25,36 @@ _TUMBLE_AXIS_COLOR = "#bf4343"
 # Airflow vector color
 _AIRFLOW_COLOR = "#b85300"
 
+# Color of ground track points
+_TRACK_COLOR = "dodgerblue"
+
+# Color and shape of launch site marker
+_LAUNCH_SITE_COLOR = "crimson"
+
 # Returns Plotly figure of scatter geo plot with given apogee, perigee, starting latitude, and starting
 # longitude
 @st.cache
 def plotGroundTrack(coords):
+	# Ground track and launch site point colors
+	colors = np.full(coords["lat"].size - 1, _TRACK_COLOR)
+	colors = np.append(colors, _LAUNCH_SITE_COLOR)
+
+	text = np.full(coords["lat"].size - 1, "lat: %{lat}°, lon: %{lon}°<extra></extra>")
+	text = np.append(text, "🚀 Launch site<extra></extra>")
+
 	# Create plotly figure
 	fig = go.Figure(go.Scattermapbox(
 		mode = "markers",
 		lat = coords["lat"],
 		lon = coords["lon"],
-		marker_color = coords["colors"],
+		marker_color = colors,
+		hoverinfo = None,
+		hovertemplate = text,
 	))
 
 	fig.update_layout(
 		width = 1000,
-		mapbox = {"style" : "open-street-map"},
+		mapbox = {"style" : "open-street-map", "zoom" : 5},
 		showlegend = False,
 		margin = {"l" : 0, "r" : 0, "b" : 0, "t" : 0}
 	)
