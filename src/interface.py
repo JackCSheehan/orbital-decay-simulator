@@ -81,7 +81,7 @@ def main():
 	#### Initial Orbit Ground Track
 	"""
 	initialOrbitCoords = calculateInitialOrbitTrackCoords(apogee, perigee, inclination, startingLat, startingLon)
-	st.plotly_chart(plotGroundTrack(initialOrbitCoords))
+	st.plotly_chart(plotGroundTrack(initialOrbitCoords, startingLat, startingLon))
 
 	"""
 	---

@@ -34,7 +34,11 @@ _LAUNCH_SITE_COLOR = "crimson"
 # Returns Plotly figure of scatter geo plot with given apogee, perigee, starting latitude, and starting
 # longitude
 @st.cache
-def plotGroundTrack(coords):
+def plotGroundTrack(coords, startingLat, startingLon):
+	# Add lat and lon of launch site to mark it on the map
+	coords = coords.append(pd.DataFrame([[startingLat, startingLon]], columns = ["lat", "lon"]))
+	print(coords.tail())
+
 	# Ground track and launch site point colors
 	colors = np.full(coords["lat"].size - 1, _TRACK_COLOR)
 	colors = np.append(colors, _LAUNCH_SITE_COLOR)
@@ -54,7 +58,7 @@ def plotGroundTrack(coords):
 
 	fig.update_layout(
 		width = 1000,
-		mapbox = {"style" : "open-street-map", "zoom" : 5},
+		mapbox = {"style" : "open-street-map"},
 		showlegend = False,
 		margin = {"l" : 0, "r" : 0, "b" : 0, "t" : 0}
 	)

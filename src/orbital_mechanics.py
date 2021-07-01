@@ -209,10 +209,6 @@ def calculateInitialOrbitTrackCoords(a, p, i, startingLat, startingLon):
 
 	# Add correction to launch site to determine first full orbit after launch
 	lon -= np.abs(launchSiteEquivalentLon - startingLon) + nodalDisplacement
-	
-	# Add lat and lon of launch site to mark it on the map
-	lat = np.append(lat, startingLat)
-	lon = np.append(lon, startingLon)
 
 	return pd.DataFrame({"lat" : lat, "lon" : lon})
 
