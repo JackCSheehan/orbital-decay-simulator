@@ -70,6 +70,13 @@ def main():
 
 	inclination = st.slider("Inclination (°)", 0, 90, 0, format = _DEGREE_FORMAT, help = "The angle of your orbit with respect to Earth's equatorial plane")
 
+	# Check that apogee is >= perigee
+	if apogee < perigee:
+		"""
+		#### Apogee must be greater than or equal to perigee
+		"""
+		return
+
 	# Check that inclination is valid given launch site latitude
 	if inclination < startingLat:
 		"""
