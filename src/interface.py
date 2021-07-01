@@ -73,7 +73,7 @@ def main():
 	# Check that inclination is valid given launch site latitude
 	if inclination < startingLat:
 		"""
-		**Orbital inclination cannot be less than starting latitude**
+		#### Orbital inclination cannot be less than starting latitude
 		"""
 		return
 

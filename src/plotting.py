@@ -37,7 +37,6 @@ _LAUNCH_SITE_COLOR = "crimson"
 def plotGroundTrack(coords, startingLat, startingLon):
 	# Add lat and lon of launch site to mark it on the map
 	coords = coords.append(pd.DataFrame([[startingLat, startingLon]], columns = ["lat", "lon"]))
-	print(coords.tail())
 
 	# Ground track and launch site point colors
 	colors = np.full(coords["lat"].size - 1, _TRACK_COLOR)
