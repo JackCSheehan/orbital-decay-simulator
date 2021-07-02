@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 from bokeh.plotting import figure
 from bokeh.io import curdoc
 from enum import Enum
+import math
 from plotting import *
 import time
 from datetime import timedelta
@@ -18,8 +19,22 @@ _DEGREE_FORMAT = "%d°"
 # Format  string for vector head inputs
 _VECTOR_FORMAT = "%.2g"
 
-# Format string for higher prece
+# Format string for higher precision numbers
 _HIGH_PRECISION_NUMBER = "%.5f"
+
+# Prompt text for lat and lon inputs
+_LAT_PROMPT = "Starting Latitude (°)"
+_LON_PROMPT = "Starting Longitude (°)"
+
+# Help text for lat and lon inputs
+_LAT_HELP = "The latitude, in degrees, that your vehicle launched from"
+_LON_HELP = "The longitude, in degrees, that your vehicle launched from"
+
+# Prompt text for inclination input
+_INCLINATION_PROMPT = "Inclination (°)"
+
+# Help text for inclination input
+_INCLINATION_HELP = "The angle of your orbit with respect to Earth's equatorial plane"
 
 # Main driver for Streamlit inputs and calling of other files' functions
 def main():
@@ -54,21 +69,38 @@ def main():
 	"""
 
 	# Create 2 columns for organizing orbit parameter data
-	orbit_col1, orbit_col2 = st.beta_columns(2)
+	orbitCol1, orbitCol2 = st.beta_columns(2)
 
-	# Populate column 1 inputs
-	with orbit_col1:
-		startingLat = st.number_input("Starting Latitude (°)", 0.0, 90.0, 0.0, help = "The latitude, in degrees, that your vehicle launched from")
+	with orbitCol1:
+		# Placeholder for lat input
+		latInput = st.empty()
+
+		startingLat = latInput.number_input(_LAT_PROMPT, 0.0, 90.0, 0.0, help = _LAT_HELP)
 		apogee = st.number_input("Apogee (km)", 0, 1000, help = "The distance the farthest part of your orbit is from Earth's surface")
 		startDate = st.date_input("Orbit insertion date", help = "Date of insertion into starting orbit")
+		
+		# Placeholder for inclination input
+		inlinationInput = st.empty()
 
-	# Populate column 2 inputs
-	with orbit_col2:
-		startingLon = st.number_input("Starting Longitude (°)", -180.0, 180.0, 0.0, help = "The longitude, in degrees, that your vehicle launched from")
+		inclination = inlinationInput.slider(_INCLINATION_PROMPT, 0, 90, 0, format = _DEGREE_FORMAT, help = _INCLINATION_HELP)
+
+	with orbitCol2:
+		# Placeholder inputs for lon input
+		lonInput = st.empty()
+
+		startingLon = lonInput.number_input(_LON_PROMPT, -180.0, 180.0, 0.0, help = _LON_HELP)
 		perigee = st.number_input("Perigee (km)", 0, 1000, help = "The distance the closest part of your orbit is from Earth's surface")
 		startTime = st.time_input("Orbit insertion time (UTC)", value = time(0, 0, 0), help = "Time of insertion into starting orbit in UTC. Uses 24-hour time")
+		commonSitePreset = st.selectbox("Launch site preset", list(COMMON_LAUNCH_SITES.keys()), help = "Select from a list of common launch sites")
+	
+	plotCommonSites = st.checkbox("Visualize common launch sites", help = "Option to plot points of common launch sites on the map")
 
-	inclination = st.slider("Inclination (°)", 0, 90, 0, format = _DEGREE_FORMAT, help = "The angle of your orbit with respect to Earth's equatorial plane")
+	# If site preset isn't custom, fill in relevant details of the site
+	if commonSitePreset != "Custom":
+		startingLat = latInput.number_input(_LAT_PROMPT, COMMON_LAUNCH_SITES[commonSitePreset]["lat"], help = _LAT_HELP)
+		startingLon = lonInput.number_input(_LON_PROMPT, -180.0, 180.0, float(COMMON_LAUNCH_SITES[commonSitePreset]["lon"]), help = _LON_HELP)
+
+		inclination = inlinationInput.slider(_INCLINATION_PROMPT, 0, 90, math.ceil(COMMON_LAUNCH_SITES[commonSitePreset]["lat"]), format = _DEGREE_FORMAT, help = _INCLINATION_HELP)
 
 	# Check that apogee is >= perigee
 	if apogee < perigee:
@@ -88,7 +120,7 @@ def main():
 	#### Initial Orbit Ground Track
 	"""
 	initialOrbitCoords = calculateInitialOrbitTrackCoords(apogee, perigee, inclination, startingLat, startingLon)
-	st.plotly_chart(plotGroundTrack(initialOrbitCoords, startingLat, startingLon))
+	st.plotly_chart(plotGroundTrack(initialOrbitCoords, startingLat, startingLon, plotCommonSites))
 
 	"""
 	---

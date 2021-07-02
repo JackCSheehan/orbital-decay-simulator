@@ -28,13 +28,29 @@ _AIRFLOW_COLOR = "#b85300"
 # Color of ground track points
 _TRACK_COLOR = "dodgerblue"
 
-# Color and shape of launch site marker
+# Color of launch site marker
 _LAUNCH_SITE_COLOR = "crimson"
+
+# Color of common launch sites
+_COMMON_SITES_COLOR = "mediumblue"
+
+# Data for common launch sites
+COMMON_LAUNCH_SITES = {
+	"Custom" : {"lat" : None, "lon" : None},
+	"[US, FL] Kennedy Space Center" : {"lat" : 28.57, "lon" : -80.65},
+	"[US, FL] Cape Canaveral Space Force Station": {"lat" : 28.49, "lon" : -80.57},
+	"[US, VA] Wallops Flight Facility" : {"lat" : 37.94, "lon" : -75.47},
+	"[US, CA] Vandenberg Space Force Base" : {"lat" : 34.74, "lon" : -120.57},
+	"[KZ] Baikonur Cosmodrome" : {"lat" : 45.96, "lon" : 63.31},
+	"[RU] Plesetsk Cosmodrome" : {"lat" : 62.93, "lon" : 40.57},
+	"[GF] Guiana Space Center" : {"lat" : 5.17, "lon" : -52.68},
+	"[JP] Tanegashima Space Center" : {"lat" : 30.37, "lon" : 130.96}
+}
 
 # Returns Plotly figure of scatter geo plot with given apogee, perigee, starting latitude, and starting
 # longitude
 @st.cache
-def plotGroundTrack(coords, startingLat, startingLon):
+def plotGroundTrack(coords, startingLat, startingLon, plotCommonSites):
 	# Add lat and lon of launch site to mark it on the map
 	coords = coords.append(pd.DataFrame([[startingLat, startingLon]], columns = ["lat", "lon"]))
 
@@ -44,6 +60,13 @@ def plotGroundTrack(coords, startingLat, startingLon):
 
 	text = np.full(coords["lat"].size - 1, "lat: %{lat}°, lon: %{lon}°<extra></extra>")
 	text = np.append(text, "🚀 Launch site<extra></extra>")
+
+	# Add common sites if user wants to see them
+	if plotCommonSites:
+		for name, data in COMMON_LAUNCH_SITES.items():
+			coords = coords.append(pd.DataFrame([[data["lat"], data["lon"]]], columns = ["lat", "lon"]))
+			colors = np.append(colors, _COMMON_SITES_COLOR)
+			text = np.append(text, name + "<extra></extra>")
 
 	# Create plotly figure
 	fig = go.Figure(go.Scattermapbox(
