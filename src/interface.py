@@ -36,6 +36,8 @@ _INCLINATION_PROMPT = "Inclination (°)"
 # Help text for inclination input
 _INCLINATION_HELP = "The angle of your orbit with respect to Earth's equatorial plane"
 
+st.set_page_config(page_title = "Orbital Decay Simulator", layout = "centered")
+
 # Main driver for Streamlit inputs and calling of other files' functions
 def main():
 	# Blank string needed to ensure Streamlit recognizes first multi-line string as markdown
@@ -120,7 +122,7 @@ def main():
 	#### Initial Orbit Ground Track
 	"""
 	initialOrbitCoords = calculateInitialOrbitTrackCoords(apogee, perigee, inclination, startingLat, startingLon)
-	st.plotly_chart(plotGroundTrack(initialOrbitCoords, startingLat, startingLon, plotCommonSites))
+	st.plotly_chart(plotGroundTrack(initialOrbitCoords, startingLat, startingLon, plotCommonSites), use_container_width = True)
 
 	"""
 	---
@@ -163,7 +165,7 @@ def main():
 		The spacecraft has the possibility of landing between `{inclination}`° latitude and `-{inclination}`° latitude. The possible landing area is highlighted on the map below.
 		"""
 
-		st.plotly_chart(plotPossibleLandingArea(inclination))
+		st.plotly_chart(plotPossibleLandingArea(inclination), use_container_width = True)
 
 if __name__ == "__main__":
 	main()

@@ -79,7 +79,6 @@ def plotGroundTrack(coords, startingLat, startingLon, plotCommonSites):
 	))
 
 	fig.update_layout(
-		width = 1000,
 		mapbox = {"style" : "open-street-map"},
 		showlegend = False,
 		margin = {"l" : 0, "r" : 0, "b" : 0, "t" : 0}
@@ -195,7 +194,6 @@ def plotPossibleLandingArea(i):
 	)
 
 	fig.update_layout(
-		width = 1000,
 		mapbox = {"style" : "open-street-map"},
 		showlegend = False,
 		margin = {"l" : 0, "r" : 0, "b" : 0, "t" : 0}
