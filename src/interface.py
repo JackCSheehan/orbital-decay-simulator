@@ -42,8 +42,8 @@ def main():
 	[GitHub](https://github.com/JackCSheehan/orbital-decay-simulator).
 
 	**Disclaimer:** This tool is for educational/hobbyist purposes only. Mistakes in calculations
-	will be fixed as soon as possible, but this tools uses generalized and approximated models. Real-life
-	precision should not be expected.
+	will be fixed as soon as possible, but this tools uses generalized and approximated models. **Real-life
+	accuracy should not be expected.**
 
 	---
 	## How it Works
@@ -80,7 +80,7 @@ def main():
 
 		startingLon = lonInput.number_input(_LON_PROMPT, -180.0, 180.0, 0.0, help = _LON_HELP)
 		perigee = st.number_input("Perigee (km)", 150, 1000, help = "The distance the closest part of your orbit is from Earth's surface")
-		startTime = st.time_input("Orbit insertion time (UTC)", value = time(0, 0, 0), help = "Time of insertion into starting orbit in UTC. Uses 24-hour time")
+		startTime = st.time_input("Orbit insertion time (UTC)", value = time(0, 0, 0), help = "Time of insertion into starting orbit. Uses 24-hour time")
 		commonSitePreset = st.selectbox("Launch site preset", list(COMMON_LAUNCH_SITES.keys()), help = "Select from a list of common launch sites")
 	
 	plotCommonSites = st.checkbox("Visualize common launch sites", help = "Option to plot points of common launch sites on the map")
@@ -170,7 +170,7 @@ def main():
 		else:
 			with st.spinner("Generating Visualizations..."):
 				"""
-				*Left click and drag to pan the plots. Use your mouse wheel to zoom. Hovering your mouse over a point will show its exact values.*
+				Left click and drag to pan the plots. Use your mouse wheel to zoom. Hovering your mouse over a point will show its exact values.
 				"""
 
 				# Plot telemetry

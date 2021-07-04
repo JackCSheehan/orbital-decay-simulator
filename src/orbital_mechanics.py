@@ -1,5 +1,4 @@
 # File containing functions used for calculating orbital elements
-
 import numpy as np
 import pandas as pd
 import streamlit as st
@@ -25,7 +24,7 @@ def _checkExtrema(a, p):
 	if a < p:
 		raise Exception("Apogee must be larger than or equal to perigee")
 
-# Returns the orbital given the apogee and perigee in km
+# Returns the orbital period in seconds given the apogee and perigee in km
 def calculateOrbitalPeriod(a, p):
 	_checkExtrema(a, p)
 
@@ -53,28 +52,9 @@ def calculateEccentricity(a, p):
 	_checkExtrema(a, p)
 	return ((a + RADIUS) - (p + RADIUS)) / (2 * calculateSemiMajorAxis(a, p))
 
-# Returns the change in theta (the change in angle of the orbiting spacecraft's position)
-# in degrees given the angular velocity omega in degrees/s and the time in seconds
-def calculateDeltaTheta(omega, t):
-	return omega * t
-
 # Returns the angular velocity given an orbital velocity and distance from body
 def calculateAngularVelocity(v, r):
 	return v / r
-
-# Returns distance from center of ellipse given apogee, perigee, and the number of degrees from perigee
-def calculateCenterDistance(a, p, theta):
-	_checkExtrema(a, p)
-
-	# Calculate semi-axes
-	semiMajorAxis = calculateSemiMajorAxis(a, p)
-	semiMinorAxis = calculateSemiMinorAxis(a, p)
-
-	# Calculate cosine wave elements
-	amplitude = np.abs((semiMajorAxis - semiMinorAxis) / 2)
-	verticalOffset = (semiMajorAxis + semiMinorAxis) / 2
-
-	return amplitude * np.cos(2 * np.radians(theta)) + verticalOffset
 
 # Returns result of Kepler's first law given apogee, perigee, and the number of degrees from perigee
 def calculateMainFocusDistance(a, p, theta):
@@ -106,14 +86,6 @@ def calculateOrbitalVelocity(a, p, theta):
 	# Calculate other elements needed
 	semiMajorAxis = calculateSemiMajorAxis(a, p)
 	distance = calculateMainFocusDistance(a, p, theta)
-
-	ratioDifference = (2 / distance) - (1 / semiMajorAxis)
-
-	return np.sqrt(MU * ratioDifference)
-
-# Returns orbital velocity in km/s from semi-major axis
-def calculateVelocityFromSemiMajorAxis(semiMajorAxis, eccentricity, theta):
-	distance = calculateMainFocusDistanceFromSemiMajorAxis(semiMajorAxis, eccentricity, theta)
 
 	ratioDifference = (2 / distance) - (1 / semiMajorAxis)
 
@@ -190,7 +162,7 @@ def calculateInitialOrbitTrackCoords(a, p, i, startingLat, startingLon):
 
 	return pd.DataFrame({"lat" : lat, "lon" : lon})
 
-# Returns the acceleration experienced by the given mass at the given height with the velocity,
+# Returns the acceleration experienced by the given mass at the given height with the given velocity,
 # drag coefficient, and reference area. Note that this uses Newton's second law F = ma and does
 # not take into account any effects of the velocity approaching the speed of light
 @st.cache(show_spinner = False)
@@ -207,7 +179,7 @@ def calculateAccelerationFromDrag(m, z, v, cd, area):
 	# Return acceleration
 	return dragForce / m
 
-# Main driver for orbital decay simulation. Takes initial apogee, perigee, inclination, average
+# Main driver for orbital decay simulation. Takes initial apogee, perigee, inclination, drag coefficient, average
 # cross-sectional area in m^2, and the time step for the simulation.
 @st.cache(show_spinner = False)
 def simulateOrbitalDecay(a, p, i, m, cd, area, timeStep):

@@ -46,8 +46,9 @@ COMMON_LAUNCH_SITES = {
 	"[JP] Tanegashima Space Center" : {"lat" : 30.37, "lon" : 130.96}
 }
 
-# Returns Plotly figure of scatter geo plot with given apogee, perigee, starting latitude, and starting
-# longitude
+# Returns Plotly figure of scatter mapbox plot of the ground track of an orbit given: a Pandas dataframe
+# with the latitude and longitude, the starting latitude, starting longitude, and a flag indicating
+# whether or not to plot common launch sites
 @st.cache(show_spinner = False)
 def plotGroundTrack(coords, startingLat, startingLon, plotCommonSites):
 	# Add lat and lon of launch site to mark it on the map
@@ -180,7 +181,7 @@ def plotSpacecraft(initialOrbitCoords, showAirflow = False, tumbleVectorHead = p
 
 	return fig
 
-# Returns Plotly figure showing possible landing area. Takes inclination of final orbit
+# Returns Plotly figure showing possible landing area. Takes inclination of orbit
 def plotPossibleLandingArea(i):
 	# Create plotly figure
 	fig = go.Figure(go.Scattermapbox(
@@ -198,12 +199,11 @@ def plotPossibleLandingArea(i):
 		margin = {"l" : 0, "r" : 0, "b" : 0, "t" : 0}
 	)
 
-
 	return fig
 
 # Returns Altair chart visualizing telemetry data. Takes telemetry dataframe, name of column to visualize over time, and the
-#Y-axis label for the plot
-def plotTelemetry(telemetry, column, name):
+# Y-axis label for the plot
+def plotTelemetry(telemetry, column, label):
 	# Get smallest and largest datapoints for scaling
 	smallestY = telemetry[column].min()
 	largestY = telemetry[column].max()
@@ -213,7 +213,7 @@ def plotTelemetry(telemetry, column, name):
 
 	return alt.Chart(telemetry).mark_line().encode(
 		x = alt.X("time", axis = alt.Axis(title = "Time (s)"), scale = alt.Scale(domain = (smallestX, largestX))),
-		y = alt.Y(column, axis = alt.Axis(title = name), scale = alt.Scale(domain = (smallestY, largestY))),
+		y = alt.Y(column, axis = alt.Axis(title = label), scale = alt.Scale(domain = (smallestY, largestY))),
 		tooltip = ["time", column]
 	).add_selection(
 		alt.selection_interval(bind = "scales")
