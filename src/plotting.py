@@ -190,6 +190,7 @@ def plotPossibleLandingArea(i):
 		lat = [i, i, -i, -i],
 		lon = [-180, 180, 180, -180],
 		marker = {"opacity" : [0, 0, 0, 0]},
+		marker_color = _TRACK_COLOR,
 		),
 	)
 
