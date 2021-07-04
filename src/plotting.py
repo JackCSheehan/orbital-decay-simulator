@@ -2,8 +2,8 @@
 
 from orbital_mechanics import *
 import plotly.graph_objects as go
-import plotly.express as px
 import streamlit as st
+import altair as alt
 from model import *
 
 # Color of water on Earth maps
@@ -49,7 +49,7 @@ COMMON_LAUNCH_SITES = {
 
 # Returns Plotly figure of scatter geo plot with given apogee, perigee, starting latitude, and starting
 # longitude
-@st.cache
+@st.cache(show_spinner = False)
 def plotGroundTrack(coords, startingLat, startingLon, plotCommonSites):
 	# Add lat and lon of launch site to mark it on the map
 	coords = coords.append(pd.DataFrame([[startingLat, startingLon]], columns = ["lat", "lon"]))
@@ -90,7 +90,7 @@ def plotGroundTrack(coords, startingLat, startingLon, plotCommonSites):
 # plot an airflow vector and tumbleVectorHead is a Pandas DataFrame that indicates the coordinates
 # of the tip of the tumble rotation axis measured from the center of mass. com and cop are Pandas
 # DataFrames representing the coordinates of the center of mass and center of pressure, respectively
-@st.cache
+@st.cache(show_spinner = False)
 def plotSpacecraft(coords, showAirflow = False, tumbleVectorHead = pd.DataFrame(), com = pd.DataFrame(), cop = pd.DataFrame()):
 	# Largest Y value used to determine where to put airflow vector on Y axis
 	largestY = coords["y"].max()
@@ -201,3 +201,14 @@ def plotPossibleLandingArea(i):
 
 
 	return fig
+
+# Returns Altair chart visualizing telemetry data. Takes telemetry dataframe, name of column to visualize over time, and the
+#Y-axis label for the plot
+def plotTelemetry(telemetry, column, name):
+	return alt.Chart(telemetry).mark_line().encode(
+		x = alt.X("time", axis = alt.Axis(title = "Time (s)")),
+		y = alt.Y(column, axis = alt.Axis(title = name)),
+		tooltip = ["time", column]
+	).add_selection(
+		alt.selection_interval(bind = "scales")
+	)

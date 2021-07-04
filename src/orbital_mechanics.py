@@ -138,7 +138,7 @@ def calculateSemiMajorAxisFromVisViva(r, v):
 
 # Returns the longitude that the spacecraft is above given the orbit's apogee, perigee,
 # inclination, and angle theta from perigee
-@st.cache
+@st.cache(show_spinner = False)
 def calculateInstantaneousLongitude(a, p, i, theta):
 	# Calculate period of given orbit
 	period = calculateOrbitalPeriod(a, p)
@@ -177,7 +177,7 @@ def calculateInstantaneousLongitude(a, p, i, theta):
 
 # Returns Pandas dataframe of latitude and longitude coordinates for the initial orbit's ground track.
 # Takes the initial orbit's apogee, perigee, inclination (in degrees), and starting longitude in degrees
-@st.cache
+@st.cache(show_spinner = False)
 def calculateInitialOrbitTrackCoords(a, p, i, startingLat, startingLon):
 	_checkExtrema(a, p)
 
@@ -215,6 +215,7 @@ def calculateInitialOrbitTrackCoords(a, p, i, startingLat, startingLon):
 # Returns the acceleration experienced by the given mass at the given height with the velocity,
 # drag coefficient, and reference area. Note that this uses Newton's second law F = ma and does
 # not take into account any effects of the velocity approaching the speed of light
+@st.cache(show_spinner = False)
 def calculateAccelerationFromDrag(m, z, v, cd, area):
 	# Check for non-zero mass
 	if m == 0:
@@ -228,9 +229,13 @@ def calculateAccelerationFromDrag(m, z, v, cd, area):
 	# Return acceleration
 	return dragForce / m
 
-# Main driver for orbital decay simulation. Takes initial apogee, perigee, and inclination
-@st.cache
+# Main driver for orbital decay simulation. Takes initial apogee, perigee, inclination, average
+# cross-sectional area in m^2, and the time step for the simulation.
+@st.cache(show_spinner = False)
 def simulateOrbitalDecay(a, p, i, m, cd, area, timeStep):
+	# Convert area to km^2
+	area *= 1e-6
+
 	# Initial parameters
 	theta = 0
 	time = 0
@@ -240,7 +245,7 @@ def simulateOrbitalDecay(a, p, i, m, cd, area, timeStep):
 	semiMajorAxis = calculateSemiMajorAxis(a, p)
 	period = calculateOrbitalPeriod(a, p)
 
-	telemetry = {"time" : [], "dragAcceleration" : [], "period" : [], "altitude" : []}
+	telemetry = {"time" : [], "dragAcceleration" : [], "period" : [], "apogee" : [], "perigee" : []}
 
 	# Main simulation loop
 	while altitude >= 0:
@@ -263,13 +268,14 @@ def simulateOrbitalDecay(a, p, i, m, cd, area, timeStep):
 		a = semiMajorAxis * (1 + eccentricity) - RADIUS
 		p = semiMajorAxis * (1 - eccentricity) - RADIUS
 
+		if a <= 0 or p <= 0 or a < p:
+			break
+
 		telemetry["time"].append(time)
 		telemetry["dragAcceleration"].append(dragAcceleration)
 		telemetry["period"].append(period)
-		telemetry["altitude"].append(altitude)
-
-		if a <= 0 or p <= 0 or a < p:
-			break
+		telemetry["apogee"].append(a)
+		telemetry["perigee"].append(p)
 
 		time += timeStep
 
@@ -284,7 +290,11 @@ def simulateOrbitalDecay(a, p, i, m, cd, area, timeStep):
 
 	try:
 		telemetryDataFrame = pd.DataFrame(telemetry)
+	
+		# Even if dataframe is within size limits, too many records could slow down browser
+		if len(telemetryDataFrame) > 100000:
+			telemetryDataFrame = None
 	except:
 		pass
-
+	
 	return (time, telemetryDataFrame)

@@ -11,12 +11,6 @@ import numpy as np
 # Format string for degree inputs
 _DEGREE_FORMAT = "%d°"
 
-# Format  string for vector head inputs
-_VECTOR_FORMAT = "%.2g"
-
-# Format string for higher precision numbers
-_HIGH_PRECISION_NUMBER = "%.5f"
-
 # Prompt text for lat and lon inputs
 _LAT_PROMPT = "Starting Latitude (°)"
 _LON_PROMPT = "Starting Longitude (°)"
@@ -134,7 +128,7 @@ def main():
 		mass = st.number_input("Mass (kg)", 1, help = "The constant mass of your spacecraft")
 
 	with craftCol2:
-		dragCoefficient = craftCol2.number_input("Drag Coefficient", .10, 5.00, 1.15, format = _HIGH_PRECISION_NUMBER, help = "Also know as coefficient of drag. Often approximated as 2.2 for spherical spacecraft")
+		dragCoefficient = craftCol2.number_input("Drag Coefficient", .10, 5.00, 1.15, help = "Also know as coefficient of drag. Often approximated as 2.2 for spherical spacecraft")
 	
 	averageArea = st.number_input("Average cross-sectional area (m²)", .10, 1.797e+308, 1.00, help = "The average cross-sectional area of your spacecraft perpendicular to airflow")
 	timeStep = st.number_input("Time Step (s)", 1, 3600, help = "The number of seconds skipped in simulation loop. Lower numbers are more accurate, but take much longer")
@@ -149,21 +143,45 @@ def main():
 		pass
 
 	if st.button("Simulate"):
-		totalElapsedSeconds, telemetry = simulateOrbitalDecay(apogee, perigee, inclination, mass, dragCoefficient, averageArea, timeStep)
-		startDatetime = datetime.combine(startDate, startTime)
+		with st.spinner("Running Simulation..."):
+			totalElapsedSeconds, telemetry = simulateOrbitalDecay(apogee, perigee, inclination, mass, dragCoefficient, averageArea, timeStep)
+			startDatetime = datetime.combine(startDate, startTime)
 
-		landingDate = startDatetime + timedelta(seconds = totalElapsedSeconds)
-		landingDateStr = landingDate.strftime("%B %d, %Y at %H:%M:%S %Z")
+			landingDate = startDatetime + timedelta(seconds = totalElapsedSeconds)
+			landingDateStr = landingDate.strftime("%B %d, %Y at %H:%M:%S %Z")
 
-		f"""
-		#### Estimated Landing
+			f"""
+			#### Estimated Landing
 
-		At `{landingDateStr}`
+			`{landingDateStr}`
 
-		The spacecraft has the possibility of landing between `{inclination}`° latitude and `-{inclination}`° latitude. The possible landing area is highlighted on the map below.
-		"""
+			The spacecraft has the possibility of landing between `{inclination}`° latitude and `-{inclination}`° latitude. The possible landing area is highlighted on the map below.
+			"""
 
-		st.plotly_chart(plotPossibleLandingArea(inclination), use_container_width = True)
+			st.plotly_chart(plotPossibleLandingArea(inclination), use_container_width = True)
+
+		if telemetry is None:
+			"""
+			There are too many data points to generate visualizations. Please increases the time step and rerun the simulation.
+			"""
+		else:
+			with st.spinner("Generating Visualizations..."):
+				"""
+				*Left click and drag to pan the plots. Use your mouse wheel to zoom. Hovering your mouse over a point will show it exact values.*
+				"""
+
+				# Plot telemetry
+				"Apogee Over Time"
+				st.altair_chart(plotTelemetry(telemetry, "apogee", "Apogee (km)"), use_container_width = True)
+
+				"Perigee Over Time"
+				st.altair_chart(plotTelemetry(telemetry, "perigee", "Perigee (km)"), use_container_width = True)
+
+				"Period Over Time"
+				st.altair_chart(plotTelemetry(telemetry, "period", "Period (s)"), use_container_width = True)
+
+				"Acceleration Due to Drag Over Time"
+				st.altair_chart(plotTelemetry(telemetry, "dragAcceleration", "Acceleration Due to Drag m/s²"), use_container_width = True)
 
 if __name__ == "__main__":
 	main()
