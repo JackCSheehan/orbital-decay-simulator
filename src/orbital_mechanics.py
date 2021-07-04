@@ -11,17 +11,14 @@ MU = 3.986004e5
 # Earth radius in km
 RADIUS = 6371
 
-# Number of seconds to step during simulation
-_TIME_STEP = 1
+# Max number of points that the simulation will return in a dataframe
+_MAX_POINTS = 200000
 
 # Number of degrees Earth turns in a second
 _OMEGA_EARTH = .25 / 60
 
 # J2 constant for Earth
 J2 = 1.08262668e-3
-
-# Kilometer altitude to considerentry interface
-_ENTRY_INTERFACE = 120
 
 # Throws error if given apogee is < given perigee
 def _checkExtrema(a, p):
@@ -58,7 +55,7 @@ def calculateEccentricity(a, p):
 
 # Returns the change in theta (the change in angle of the orbiting spacecraft's position)
 # in degrees given the angular velocity omega in degrees/s and the time in seconds
-def calcualteDeltaTheta(omega, t):
+def calculateDeltaTheta(omega, t):
 	return omega * t
 
 # Returns the angular velocity given an orbital velocity and distance from body
@@ -226,7 +223,7 @@ def simulateOrbitalDecay(a, p, i, m, cd, area, timeStep):
 	semiMajorAxis = calculateSemiMajorAxis(a, p)
 	period = calculateOrbitalPeriod(a, p)
 
-	telemetry = {"time" : [], "dragAcceleration" : [], "period" : [], "apogee" : [], "perigee" : []}
+	telemetry = {"time" : [], "dragAcceleration" : [], "velocity" : [], "apogee" : [], "perigee" : []}
 
 	# Main simulation loop
 	while altitude >= 0:
@@ -254,7 +251,7 @@ def simulateOrbitalDecay(a, p, i, m, cd, area, timeStep):
 
 		telemetry["time"].append(time)
 		telemetry["dragAcceleration"].append(dragAcceleration)
-		telemetry["period"].append(period)
+		telemetry["velocity"].append(velocity)
 		telemetry["apogee"].append(a)
 		telemetry["perigee"].append(p)
 
@@ -273,7 +270,7 @@ def simulateOrbitalDecay(a, p, i, m, cd, area, timeStep):
 		telemetryDataFrame = pd.DataFrame(telemetry)
 	
 		# Even if dataframe is within size limits, too many records could slow down browser
-		if len(telemetryDataFrame) > 100000:
+		if len(telemetryDataFrame) > _MAX_POINTS:
 			telemetryDataFrame = None
 	except:
 		pass

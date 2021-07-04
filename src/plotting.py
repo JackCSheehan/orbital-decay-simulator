@@ -204,9 +204,16 @@ def plotPossibleLandingArea(i):
 # Returns Altair chart visualizing telemetry data. Takes telemetry dataframe, name of column to visualize over time, and the
 #Y-axis label for the plot
 def plotTelemetry(telemetry, column, name):
+	# Get smallest and largest datapoints for scaling
+	smallestY = telemetry[column].min()
+	largestY = telemetry[column].max()
+
+	smallestX = telemetry["time"].min()
+	largestX = telemetry["time"].max()
+
 	return alt.Chart(telemetry).mark_line().encode(
-		x = alt.X("time", axis = alt.Axis(title = "Time (s)")),
-		y = alt.Y(column, axis = alt.Axis(title = name)),
+		x = alt.X("time", axis = alt.Axis(title = "Time (s)"), scale = alt.Scale(domain = (smallestX, largestX))),
+		y = alt.Y(column, axis = alt.Axis(title = name), scale = alt.Scale(domain = (smallestY, largestY))),
 		tooltip = ["time", column]
 	).add_selection(
 		alt.selection_interval(bind = "scales")
