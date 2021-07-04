@@ -25,7 +25,7 @@ _INCLINATION_PROMPT = "Inclination (°)"
 # Help text for inclination input
 _INCLINATION_HELP = "The angle of your orbit with respect to Earth's equatorial plane"
 
-st.set_page_config(page_title = "Orbital Decay Simulator", layout = "centered")
+st.set_page_config(page_title = "Orbital Decay Simulator", layout = "centered", page_icon = "../assets/favicon.png")
 
 # Main driver for Streamlit inputs and calling of other files' functions
 def main():
