@@ -188,11 +188,8 @@ def calculateInitialOrbitTrackCoords(a, p, i, startingLat, startingLon):
 		if np.isclose(lat[i], startingLat, rtol = 2e-2):
 			launchSiteEquivalentLon = angle
 
-	# Calculate the displacement of the Earth in a single orbit
-	#nodalDisplacement = 0
-
 	# Add correction to launch site to determine first full orbit after launch
-	lon -= np.abs(launchSiteEquivalentLon - startingLon) + nodalDisplacement
+	lon -= launchSiteEquivalentLon - startingLon + nodalDisplacement
 
 	return pd.DataFrame({"lat" : lat, "lon" : lon})
 

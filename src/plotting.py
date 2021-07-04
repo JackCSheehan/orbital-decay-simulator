@@ -90,7 +90,7 @@ def plotGroundTrack(coords, startingLat, startingLon, plotCommonSites):
 # of the tip of the tumble rotation axis measured from the center of mass. com and cop are Pandas
 # DataFrames representing the coordinates of the center of mass and center of pressure, respectively
 @st.cache(show_spinner = False)
-def plotSpacecraft(coords, showAirflow = False, tumbleVectorHead = pd.DataFrame(), com = pd.DataFrame(), cop = pd.DataFrame()):
+def plotSpacecraft(initialOrbitCoords, showAirflow = False, tumbleVectorHead = pd.DataFrame(), com = pd.DataFrame(), cop = pd.DataFrame()):
 	# Largest Y value used to determine where to put airflow vector on Y axis
 	largestY = coords["y"].max()
 
