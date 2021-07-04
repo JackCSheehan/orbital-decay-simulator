@@ -70,9 +70,9 @@ def main():
 		startDate = st.date_input("Orbit insertion date", help = "Date of insertion into starting orbit")
 		
 		# Placeholder for inclination input
-		inlinationInput = st.empty()
+		inclinationInput = st.empty()
 
-		inclination = inlinationInput.slider(_INCLINATION_PROMPT, 0, 90, 0, format = _DEGREE_FORMAT, help = _INCLINATION_HELP)
+		inclination = inclinationInput.slider(_INCLINATION_PROMPT, 0, 90, 0, format = _DEGREE_FORMAT, help = _INCLINATION_HELP)
 
 	with orbitCol2:
 		# Placeholder inputs for lon input
@@ -90,7 +90,7 @@ def main():
 		startingLat = latInput.number_input(_LAT_PROMPT, COMMON_LAUNCH_SITES[commonSitePreset]["lat"], help = _LAT_HELP)
 		startingLon = lonInput.number_input(_LON_PROMPT, -180.0, 180.0, float(COMMON_LAUNCH_SITES[commonSitePreset]["lon"]), help = _LON_HELP)
 
-		inclination = inlinationInput.slider(_INCLINATION_PROMPT, 0, 90, math.ceil(COMMON_LAUNCH_SITES[commonSitePreset]["lat"]), format = _DEGREE_FORMAT, help = _INCLINATION_HELP)
+		inclination = inclinationInput.slider(_INCLINATION_PROMPT, 0, 90, math.ceil(COMMON_LAUNCH_SITES[commonSitePreset]["lat"]), format = _DEGREE_FORMAT, help = _INCLINATION_HELP)
 
 	# Check that apogee is >= perigee
 	if apogee < perigee:
@@ -108,6 +108,8 @@ def main():
 
 	"""
 	#### Initial Orbit Ground Track
+
+	Shown is the first full orbit after orbital insertion. The seam in the orbit is a visualizations of the effect of Earth's rotation.
 	"""
 	initialOrbitCoords = calculateInitialOrbitTrackCoords(apogee, perigee, inclination, startingLat, startingLon)
 	st.plotly_chart(plotGroundTrack(initialOrbitCoords, startingLat, startingLon, plotCommonSites), use_container_width = True)
@@ -131,7 +133,7 @@ def main():
 		dragCoefficient = craftCol2.number_input("Drag Coefficient", .10, 5.00, 1.15, help = "Also know as coefficient of drag. Often approximated as 2.2 for spherical spacecraft")
 	
 	averageArea = st.number_input("Average cross-sectional area (m²)", .10, 1.797e+308, 1.00, help = "The average cross-sectional area of your spacecraft perpendicular to airflow")
-	timeStep = st.number_input("Time Step (s)", 1, 3600, help = "The number of seconds skipped in simulation loop. Lower numbers are more accurate, but take much longer")
+	timeStep = st.number_input("Time Step (s)", 1, 3600, help = "The number of seconds skipped in simulation loop. Lower numbers are more accurate, but take much longer. Larger numbers are faster, but lead to less precise visualizations and predictions")
 
 	"""
 	---
@@ -155,7 +157,7 @@ def main():
 
 			`{landingDateStr}`
 
-			The spacecraft has the possibility of landing between `{inclination}`° latitude and `-{inclination}`° latitude. The possible landing area is highlighted on the map below.
+			The spacecraft has the possibility of landing between `{inclination}°` latitude and `-{inclination}°` latitude. The possible landing area is highlighted on the map below.
 			"""
 
 			st.plotly_chart(plotPossibleLandingArea(inclination), use_container_width = True)
@@ -167,20 +169,20 @@ def main():
 		else:
 			with st.spinner("Generating Visualizations..."):
 				"""
-				*Left click and drag to pan the plots. Use your mouse wheel to zoom. Hovering your mouse over a point will show it exact values.*
+				*Left click and drag to pan the plots. Use your mouse wheel to zoom. Hovering your mouse over a point will show its exact values.*
 				"""
 
 				# Plot telemetry
-				"Apogee Over Time"
+				"#### Apogee Over Time"
 				st.altair_chart(plotTelemetry(telemetry, "apogee", "Apogee (km)"), use_container_width = True)
 
-				"Perigee Over Time"
+				"#### Perigee Over Time"
 				st.altair_chart(plotTelemetry(telemetry, "perigee", "Perigee (km)"), use_container_width = True)
 
-				"Period Over Time"
+				"#### Period Over Time"
 				st.altair_chart(plotTelemetry(telemetry, "period", "Period (s)"), use_container_width = True)
 
-				"Acceleration Due to Drag Over Time"
+				"#### Acceleration Due to Drag Over Time"
 				st.altair_chart(plotTelemetry(telemetry, "dragAcceleration", "Acceleration Due to Drag m/s²"), use_container_width = True)
 
 if __name__ == "__main__":
