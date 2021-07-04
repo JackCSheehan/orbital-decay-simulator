@@ -230,7 +230,7 @@ def calculateAccelerationFromDrag(m, z, v, cd, area):
 
 # Main driver for orbital decay simulation. Takes initial apogee, perigee, and inclination
 @st.cache
-def simulateOrbitalDecay(a, p, i, m, cd, area, startingLon, timeStep):
+def simulateOrbitalDecay(a, p, i, m, cd, area, timeStep):
 	# Initial parameters
 	theta = 0
 	time = 0

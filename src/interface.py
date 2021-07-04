@@ -1,17 +1,12 @@
 # File containing Streamlit interface controls
-
 import streamlit as st
-import plotly.express as px
-import matplotlib.pyplot as plt
-from bokeh.plotting import figure
-from bokeh.io import curdoc
-from enum import Enum
 import math
 from plotting import *
 import time
 from datetime import timedelta
 from datetime import datetime, time
 import altair as alt
+import numpy as np
 
 # Format string for degree inputs
 _DEGREE_FORMAT = "%d°"
@@ -70,7 +65,6 @@ def main():
 	Enter the basic parameters of your spacecraft's starting orbit.
 	"""
 
-	# Create 2 columns for organizing orbit parameter data
 	orbitCol1, orbitCol2 = st.beta_columns(2)
 
 	with orbitCol1:
@@ -134,11 +128,15 @@ def main():
 	Enter in some basic information about your spacecraft.
 	"""
 
-	# Create columns to organize spacecraft parameter inputs
-	craft_col1, craft_col2 = st.beta_columns(2)
+	craftCol1, craftCol2 = st.beta_columns(2)
 
-	mass = craft_col1.number_input("Mass (kg)", 1, help = "The constant mass of your spacecraft")
-	dragCoefficient = craft_col2.number_input("Drag Coefficient", .10, 5.00, 1.15, format = _HIGH_PRECISION_NUMBER, help = "Also know as coefficient of drag. Often approximated as 2.2 for spherical spacecraft")
+	with craftCol1:
+		mass = st.number_input("Mass (kg)", 1, help = "The constant mass of your spacecraft")
+
+	with craftCol2:
+		dragCoefficient = craftCol2.number_input("Drag Coefficient", .10, 5.00, 1.15, format = _HIGH_PRECISION_NUMBER, help = "Also know as coefficient of drag. Often approximated as 2.2 for spherical spacecraft")
+	
+	averageArea = st.number_input("Average cross-sectional area (m²)", .10, 1.797e+308, 1.00, help = "The average cross-sectional area of your spacecraft perpendicular to airflow")
 	timeStep = st.number_input("Time Step (s)", 1, 3600, help = "The number of seconds skipped in simulation loop. Lower numbers are more accurate, but take much longer")
 
 	"""
@@ -151,7 +149,7 @@ def main():
 		pass
 
 	if st.button("Simulate"):
-		totalElapsedSeconds, telemetry = simulateOrbitalDecay(apogee, perigee, inclination, mass, dragCoefficient, 105e-6, initialOrbitCoords["lon"][0], timeStep)
+		totalElapsedSeconds, telemetry = simulateOrbitalDecay(apogee, perigee, inclination, mass, dragCoefficient, averageArea, timeStep)
 		startDatetime = datetime.combine(startDate, startTime)
 
 		landingDate = startDatetime + timedelta(seconds = totalElapsedSeconds)
