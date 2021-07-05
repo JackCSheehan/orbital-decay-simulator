@@ -193,13 +193,11 @@ def simulateOrbitalDecay(a, p, i, m, cd, area, timeStep):
 	altitude = distance - RADIUS
 	eccentricity = calculateEccentricity(a, p)
 	semiMajorAxis = calculateSemiMajorAxis(a, p)
-	period = calculateOrbitalPeriod(a, p)
 
 	telemetry = {"time" : [], "dragAcceleration" : [], "velocity" : [], "apogee" : [], "perigee" : []}
 
 	# Main simulation loop
 	while altitude >= 0:
-		period = calculateOrbitalPeriod(a, p)
 		distance = calculateMainFocusDistance(a, p, theta)
 		velocity = calculateOrbitalVelocity(a, p, theta)
 		altitude = distance - RADIUS

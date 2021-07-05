@@ -65,7 +65,7 @@ def main():
 		# Placeholder for lat input
 		latInput = st.empty()
 
-		startingLat = latInput.number_input(_LAT_PROMPT, 0.0, 90.0, 0.0, help = _LAT_HELP)
+		startingLat = latInput.number_input(_LAT_PROMPT, -90.0, 90.0, 0.0, help = _LAT_HELP)
 		apogee = st.number_input("Apogee (km)", 150, 1000, help = "The distance the farthest part of your orbit is from Earth's surface")
 		startDate = st.date_input("Orbit insertion date", help = "Date of insertion into starting orbit")
 		
@@ -87,7 +87,7 @@ def main():
 
 	# If site preset isn't custom, fill in relevant details of the site
 	if commonSitePreset != "Custom":
-		startingLat = latInput.number_input(_LAT_PROMPT, COMMON_LAUNCH_SITES[commonSitePreset]["lat"], help = _LAT_HELP)
+		startingLat = latInput.number_input(_LAT_PROMPT, -90.0, 90.0, COMMON_LAUNCH_SITES[commonSitePreset]["lat"], help = _LAT_HELP)
 		startingLon = lonInput.number_input(_LON_PROMPT, -180.0, 180.0, float(COMMON_LAUNCH_SITES[commonSitePreset]["lon"]), help = _LON_HELP)
 
 		inclination = inclinationInput.slider(_INCLINATION_PROMPT, 0, 90, math.ceil(COMMON_LAUNCH_SITES[commonSitePreset]["lat"]), format = _DEGREE_FORMAT, help = _INCLINATION_HELP)
@@ -100,7 +100,7 @@ def main():
 		return
 
 	# Check that inclination is valid given launch site latitude
-	if inclination < startingLat:
+	if inclination < abs(startingLat):
 		"""
 		#### Orbital inclination cannot be less than starting latitude
 		"""
@@ -130,7 +130,7 @@ def main():
 		mass = st.number_input("Mass (kg)", 1, None, 1000, help = "The constant mass of your spacecraft")
 
 	with craftCol2:
-		dragCoefficient = craftCol2.number_input("Drag Coefficient", .10, 5.00, 1.15, help = "Also know as coefficient of drag. Often approximated as 2.2 for spherical spacecraft")
+		dragCoefficient = st.number_input("Drag Coefficient", .10, 5.00, 1.15, help = "Also know as coefficient of drag. Often approximated as 2.2 for spherical spacecraft")
 	
 	averageArea = st.number_input("Average cross-sectional area (m²)", .10, None, 1.00, help = "The average cross-sectional area of your spacecraft perpendicular to airflow")
 	timeStep = st.number_input("Time Step (s)", 1, 3600, 300, help = "The number of seconds skipped in simulation loop. Lower numbers are more accurate, but take much longer. Larger numbers are faster, but lead to less precise visualizations and predictions")
