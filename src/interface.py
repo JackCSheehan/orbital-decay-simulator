@@ -2,11 +2,7 @@
 import streamlit as st
 import math
 from plotting import *
-import time
-from datetime import timedelta
-from datetime import datetime, time
-import altair as alt
-import numpy as np
+from datetime import timedelta, datetime, time
 
 # Format string for degree inputs
 _DEGREE_FORMAT = "%d°"
@@ -34,8 +30,8 @@ def main():
 
 	# Intro text
 	"""
-	# Orbital Decay Simulator
-	Calculates and visualizes orbital decay using atmospheric drag.
+	# :earth_americas: Orbital Decay Simulator
+	Calculates and visualizes orbital decay.
 	Written by [Jack Sheehan](https://github.com/JackCSheehan).
 
 	This tool is open source. Find a bug or want to contribute? Check out the source on
@@ -49,8 +45,12 @@ def main():
 	## How it Works
 	This simulator works by calculating how drag force affects orbital elements over
 	time. More complicated causes of orbital decay, such as solar radiation pressure, are not included as part
-	of the decay calculations. The 1976 U.S. Standard Atmosphere model is used to calculate the density at a
+	of the decay calculations. The 1976 U.S. Standard Atmosphere model is used to calculate the density of the atmosphere at a
 	particular altitude.
+
+	Start by supplying a few orbital elements and viewing the accompanying visualization. Next, supply some information about your
+	spacecraft. Finally, click the "Simulate" button to run the simulation. When the simulation is completed, you will be given
+	an estimate of when the spacecraft will land back on Earth as well as visualizations of the vehicle's trajectory while its orbit decayed.
 	"""
 
 	"""
