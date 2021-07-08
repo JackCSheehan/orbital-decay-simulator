@@ -1,1 +1,1 @@
-web: streamlit run src/interface.py 
+web: sh setup.sh && streamlit run src/interface.py 
