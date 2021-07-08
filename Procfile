@@ -1,1 +1,1 @@
-web: gunicorn orbitaldecaysimulator.wsgi 
+web: streamlit run src/interface.py 
