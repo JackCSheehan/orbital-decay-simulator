@@ -8,7 +8,7 @@ particular altitude.
 
 Start by supplying a few orbital elements and viewing the accompanying visualization. Next, supply some information about your
 spacecraft. Finally, click the "Simulate" button to run the simulation. When the simulation is completed, you will be given
-an estimate of when the spacecraft will land back on Earth as well as visualizations of the vehicle's trajectory while its orbit decayed.
+an estimate of when the spacecraft will land back on Earth as well as visualizations of the vehicle's telemetry while its orbit decayed.
 
 ## Technologies Used
 #### [Streamlit](https://streamlit.io/)
