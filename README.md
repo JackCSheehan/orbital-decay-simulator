@@ -1,7 +1,7 @@
 # :earth_americas: Orbital Decay Simulator
 An interactive web app that allows for approximating and visualizing a spacecraft's orbital decay and reentry.
 
-Check the app out [here](https://orbital-decay-simulator.herokuapp.com/)
+Check the app out [here](https://orbital-decay-simulator.herokuapp.com/).
 
 This simulator works by calculating how drag force affects orbital elements over
 time. More complicated causes of orbital decay, such as solar radiation pressure, are not included as part
