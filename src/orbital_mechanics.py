@@ -102,6 +102,14 @@ def calculateNodalDisplacementAngle(nodalDisplacement, angle):
 def calculateSemiMajorAxisFromVisViva(r, v):
 	return -(MU * r) / (v**2 * r - 2 * MU)
 
+# Returns launch azimuth in degrees given launch lat and target inclination
+def calculateAzimuth(i, startingLat):
+	return np.degrees(np.arcsin(np.cos(np.radians(i)) / np.cos(np.radians(startingLat))))
+
+# Returns longitude of the ascending node given launch azimuth, starting latitude, and inclination
+def calculateLAN(i, startingLat, azimuth):
+	return np.degrees(np.arcsin((np.sin(np.radians(azimuth)) * np.sin(np.radians(startingLat))) / np.sin(np.radians(i))))
+
 # Returns Pandas dataframe of latitude and longitude coordinates for the initial orbit's ground track.
 # Takes the initial orbit's apogee, perigee, inclination (in degrees), and starting longitude in degrees
 @st.cache(show_spinner = False)
@@ -109,7 +117,7 @@ def calculateInitialOrbitTrackCoords(a, p, i, startingLat, startingLon):
 	_checkExtrema(a, p)
 
 	# Array of degrees to calculate various elements for
-	theta = np.linspace(0, 360, 360)
+	theta = np.linspace(0, 360, 180)
 
 	# Calculate period of given orbit
 	period = calculateOrbitalPeriod(a, p)
@@ -120,47 +128,27 @@ def calculateInitialOrbitTrackCoords(a, p, i, startingLat, startingLon):
 	# Calculate radius of orbit at each theta
 	r = calculateMainFocusDistance(a, p, theta)
 
-	# Calculate Cartesian coordinates of orbit
-	x = r * np.sin(np.radians(theta))
-	y = r * np.cos(np.radians(theta)) * np.cos(np.radians(i))
+	azimuth = calculateAzimuth(i, startingLat)
+	lan = calculateLAN(i, startingLat, azimuth)
 
-	positions = np.stack((x, y), axis = -1)
+	# Determine launch direction depending starting latitude
+	if abs(startingLat - i) < 1:
+		i *= -1
 
-	# Unit vector pointing through prime meridian
-	mHat = np.array([1, 0])
+	if i == 0:
+		lat = np.linspace(0, 0, 180)
+		lon = np.linspace(0, 360, 180)
+	else:
+		lat = np.sin(np.radians(theta) + np.arcsin(startingLat / i)) * i
 
-	# Calculate array of latitude coordinates
-	lat = i * np.cos(np.radians(theta))
+		for t in theta:
+			print(t)
 
-	# Create emptyarray to hold longitude angles
-	lon = np.empty(0)
-
-	launchSiteEquivalentLon = 0
-
-	# Iterate over position vectors
-	for i in range(0, int(positions.size / 2)):
-		# Calculate angle between mHat and current position vector using cosine rule
-		angle = np.degrees(np.arccos(np.dot(positions[i], mHat) / (np.linalg.norm(positions[i]))))
-
-		# Negate coordinates after index 90
-		if i >= 90 and i < 270:
-			angle *= -1
-
-		# Correct for Earth's rotation
-		if angle < 0:
-			angle += calculateNodalDisplacementAngle(nodalDisplacement, angle)
-		elif angle > 0 :
-			angle -= calculateNodalDisplacementAngle(nodalDisplacement, angle)
-
-		lon = np.append(lon, angle)
-
-		if np.isclose(lat[i], startingLat, rtol = 2e-2):
-			launchSiteEquivalentLon = angle
-
-	# Add correction to launch site to determine first full orbit after launch
-	lon -= launchSiteEquivalentLon - startingLon + nodalDisplacement
+		lon = theta
 
 	return pd.DataFrame({"lat" : lat, "lon" : lon})
+
+calculateInitialOrbitTrackCoords(100, 100, 51.6, 28, 80)
 
 # Returns the acceleration experienced by the given mass at the given height with the given velocity,
 # drag coefficient, and reference area. Note that this uses Newton's second law F = ma and does
