@@ -58,6 +58,8 @@ def plotGroundTrack(coords, startingLat, startingLon, plotCommonSites):
 		hovertemplate = text,
 	))
 
+	#fig.update_geos(projection_type = "orthographic")
+
 	fig.update_layout(
 		mapbox = {"style" : "open-street-map"},
 		showlegend = False,

@@ -14,7 +14,7 @@ RADIUS = 6371
 _MAX_POINTS = 200000
 
 # Number of degrees Earth turns in a second
-_OMEGA_EARTH = .25 / 60
+_OMEGA_EARTH = 0.00417806712
 
 # J2 constant for Earth
 J2 = 1.08262668e-3
@@ -30,7 +30,7 @@ def calculateOrbitalPeriod(a, p):
 
 	semiMajorAxis = calculateSemiMajorAxis(a, p)
 
-	return 2 * np.pi * np.sqrt(semiMajorAxis**3 / MU)
+	return 2 * math.pi * math.sqrt(semiMajorAxis**3 / MU)
 
 # Returns semi-major axis in km from apogee and perigee in km
 def calculateSemiMajorAxis(a, p):
@@ -116,39 +116,44 @@ def calculateLAN(i, startingLat, azimuth):
 def calculateInitialOrbitTrackCoords(a, p, i, startingLat, startingLon):
 	_checkExtrema(a, p)
 
-	# Array of degrees to calculate various elements for
-	theta = np.linspace(0, 360, 180)
-
 	# Calculate period of given orbit
 	period = calculateOrbitalPeriod(a, p)
 
 	# Calculate the displacement of the Earth in a single orbit
 	nodalDisplacement = period * _OMEGA_EARTH
 
-	# Calculate radius of orbit at each theta
-	r = calculateMainFocusDistance(a, p, theta)
-
-	azimuth = calculateAzimuth(i, startingLat)
-	lan = calculateLAN(i, startingLat, azimuth)
+	# Array of degrees to calculate various elements for
+	theta = np.linspace(0, 360, 360)
 
 	# Determine launch direction depending starting latitude
 	if abs(startingLat - i) < 1:
 		i *= -1
 
 	if i == 0:
-		lat = np.linspace(0, 0, 180)
-		lon = np.linspace(0, 360, 180)
+		lat = np.linspace(0, 0, 360)
+		lon = np.linspace(0, 360, 360)
 	else:
 		lat = np.sin(np.radians(theta) + np.arcsin(startingLat / i)) * i
 
-		for t in theta:
-			print(t)
+		azimuth = calculateAzimuth(i, startingLat)
+		lan = calculateLAN(i, startingLat, azimuth)
+		lan = startingLon - lan
 
-		lon = theta
+		# Calculate radius and velocity of orbit
+		r = calculateMainFocusDistance(a, p, theta + lan)
+		d = (period * r**2) / 2
+
+		lon = np.empty(360)
+		lon[0] = startingLon
+
+		timeInterval = period / (360)
+		angularVelocity = (180 * calculateSemiMajorAxis(a, p) * calculateSemiMinorAxis(a, p)) / d
+
+
+		for param in range(1, 360):
+			lon[param] = lon[param - 1] + timeInterval * angularVelocity[param]
 
 	return pd.DataFrame({"lat" : lat, "lon" : lon})
-
-calculateInitialOrbitTrackCoords(100, 100, 51.6, 28, 80)
 
 # Returns the acceleration experienced by the given mass at the given height with the given velocity,
 # drag coefficient, and reference area. Note that this uses Newton's second law F = ma and does
