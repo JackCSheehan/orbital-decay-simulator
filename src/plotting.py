@@ -49,8 +49,8 @@ def plotGroundTrack(coords, startingLat, startingLon, plotCommonSites):
 			text = np.append(text, name + "<extra></extra>")
 
 	# Create plotly figure
-	fig = go.Figure(go.Scattermapbox(
-		mode = "markers",
+	fig = go.Figure(go.Scattergeo(
+		mode = "lines",
 		lat = coords["lat"],
 		lon = coords["lon"],
 		marker_color = colors,
@@ -58,10 +58,10 @@ def plotGroundTrack(coords, startingLat, startingLon, plotCommonSites):
 		hovertemplate = text,
 	))
 
-	#fig.update_geos(projection_type = "orthographic")
+	fig.update_geos(projection_type = "equirectangular")
 
 	fig.update_layout(
-		mapbox = {"style" : "open-street-map"},
+		#mapbox = {"style" : "open-street-map"},
 		showlegend = False,
 		margin = {"l" : 0, "r" : 0, "b" : 0, "t" : 0}
 	)

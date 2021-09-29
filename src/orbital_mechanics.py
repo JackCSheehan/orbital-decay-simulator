@@ -121,37 +121,30 @@ def calculateInitialOrbitTrackCoords(a, p, i, startingLat, startingLon):
 
 	# Calculate the displacement of the Earth in a single orbit
 	nodalDisplacement = period * _OMEGA_EARTH
-
-	# Array of degrees to calculate various elements for
-	theta = np.linspace(0, 360, 360)
-
+	resolution = 100
 	# Determine launch direction depending starting latitude
 	if abs(startingLat - i) < 1:
 		i *= -1
 
 	if i == 0:
-		lat = np.linspace(0, 0, 360)
-		lon = np.linspace(0, 360, 360)
+		lat = np.linspace(0, 0, resolution)
+		lon = np.linspace(0, 360, resolution)
 	else:
-		lat = np.sin(np.radians(theta) + np.arcsin(startingLat / i)) * i
+		oppStartingLat = -startingLat
+		oppStartingLon = startingLon + 180
 
-		azimuth = calculateAzimuth(i, startingLat)
-		lan = calculateLAN(i, startingLat, azimuth)
-		lan = startingLon - lan
+		peakInclinationLat = i
+		peakInclinationLon = (startingLon - startingLat) / 2
 
-		# Calculate radius and velocity of orbit
-		r = calculateMainFocusDistance(a, p, theta + lan)
-		d = (period * r**2) / 2
+		minInclinationLat = -i
+		minInclinationLon = peakInclinationLon + 180
 
-		lon = np.empty(360)
-		lon[0] = startingLon
+		# Starting, top, descending node, bottom, ascending node
+		lat = [startingLat, peakInclinationLat, oppStartingLat, minInclinationLat, startingLat]
+		lon = [startingLon, peakInclinationLon, oppStartingLon, minInclinationLon, startingLon]
 
-		timeInterval = period / (360)
-		angularVelocity = (180 * calculateSemiMajorAxis(a, p) * calculateSemiMinorAxis(a, p)) / d
-
-
-		for param in range(1, 360):
-			lon[param] = lon[param - 1] + timeInterval * angularVelocity[param]
+		for i in range(0, len(lon)):
+			lon[i] += nodalDisplacement
 
 	return pd.DataFrame({"lat" : lat, "lon" : lon})
 
