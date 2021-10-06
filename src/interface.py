@@ -92,7 +92,8 @@ def main():
 	#### Ground Track
 	Shown below is the ground track of your orbit.
 	"""
-	st.plotly_chart(plotGroundTrack(apogee, perigee, inclination, raan, argOfPerigee, trueAnomaly, startingLat, startingLon), use_container_width = True)
+	proj = st.selectbox("Map Projection", PROJECTION_TYPES)
+	st.plotly_chart(plotGroundTrack(apogee, perigee, inclination, raan, argOfPerigee, trueAnomaly, startingLat, startingLon, proj), use_container_width = True)
 
 	"""
 	---
@@ -140,8 +141,7 @@ def main():
 
 			The spacecraft has the possibility of landing between `{inclination}°` latitude and `-{inclination}°` latitude. The possible landing area is highlighted on the map below.
 			"""
-
-			st.plotly_chart(plotPossibleLandingArea(inclination), use_container_width = True)
+			st.plotly_chart(plotGroundTrack(apogee, perigee, inclination, raan, argOfPerigee, trueAnomaly, startingLat, startingLon, proj, True), use_container_width = True)
 
 		if telemetry is None:
 			"""
@@ -150,6 +150,8 @@ def main():
 		else:
 			with st.spinner("Generating Visualizations..."):
 				"""
+				#### Telemetry Visualizations
+
 				Left click and drag to pan the plots. Use your mouse wheel to zoom. Hovering your mouse over a point will show its exact values.
 				"""
 

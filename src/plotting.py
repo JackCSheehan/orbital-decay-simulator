@@ -23,16 +23,45 @@ _COUNTRY_COLOR = "lightgray"
 # Color of launch site marker
 _LAUNCH_SITE_COLOR = "crimson"
 
+# Plotly projection types
+PROJECTION_TYPES = [
+	"Equirectangular",
+	"Mercator",
+	"Orthographic",
+	"Natural Earth",
+	"Kavrayskiy7",
+	"Miller",
+	"Robinson",
+	"Eckert4",
+	"Azimuthal Equal Area",
+	"Azimuthal Equidistant",
+	"Conic Equal Area",
+	"Conic Conformal",
+	"Conic Equidistant",
+	"Gnomonic",
+	"Stereographic",
+	"Mollweide",
+	"Hammer",
+	"Transverse Mercator",
+	"Winkel Tripel",
+	"Aitoff",
+	"Sinusoidal"
+]
+
 # Returns Plotly figure of scatter mapbox plot of the ground track of an orbit given: apogee, perigee,
 # inclination, right ascension of the ascending node, argument of perigee, true anomaly, starting lat,
 # and starting lon
-def plotGroundTrack(a, p, i, raan, argOfPerigee, trueAnomaly, startingLat, startingLon):
+def plotGroundTrack(a, p, i, raan, argOfPerigee, trueAnomaly, startingLat, startingLon, proj = PROJECTION_TYPES[0], showMany = False):
 	fig = GroundtrackPlotter()
 
 	# Derive orbital elements needed to plot ground track
 	period = calculateOrbitalPeriod(a, p)
 	semiMajoraxis = calculateSemiMajorAxis(a, p)
 	eccentricity = calculateEccentricity(a, p)
+
+	# Multiply period if many orbit tracks are to be shown
+	if showMany:
+		period *= 86400 / period / 2
 
 	orbit = Orbit.from_classical(Earth, semiMajoraxis * u.km, eccentricity * u.one, i * u.deg, raan * u.deg, argOfPerigee * u.deg, trueAnomaly * u.deg)
 	sat = EarthSatellite(orbit, None)
@@ -61,6 +90,7 @@ def plotGroundTrack(a, p, i, raan, argOfPerigee, trueAnomaly, startingLat, start
 		lakecolor = _WATER_COLOR,
 		rivercolor = _WATER_COLOR,
 		countrycolor = _COUNTRY_COLOR,
+		projection_type = proj.lower()
 	)
 
 	fig.fig.update_traces(
