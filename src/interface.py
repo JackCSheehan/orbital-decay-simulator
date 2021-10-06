@@ -59,7 +59,7 @@ def main():
 	Enter the basic parameters of your spacecraft's starting orbit.
 	"""
 
-	orbitCol1, orbitCol2 = st.beta_columns(2)
+	orbitCol1, orbitCol2 = st.columns(2)
 
 	with orbitCol1:
 		# Placeholder for lat input
@@ -111,8 +111,7 @@ def main():
 
 	Shown is the first full orbit after orbital insertion. The seam in the orbit is a visualizations of the effect of Earth's rotation.
 	"""
-	initialOrbitCoords = calculateInitialOrbitTrackCoords(apogee, perigee, inclination, startingLat, startingLon)
-	st.plotly_chart(plotGroundTrack(initialOrbitCoords, startingLat, startingLon, plotCommonSites), use_container_width = True)
+	st.plotly_chart(plotGroundTrack(apogee, perigee, inclination, startingLat, startingLon, plotCommonSites), use_container_width = True)
 
 	"""
 	---
@@ -124,7 +123,7 @@ def main():
 	Enter in some basic information about your spacecraft.
 	"""
 
-	craftCol1, craftCol2 = st.beta_columns(2)
+	craftCol1, craftCol2 = st.columns(2)
 
 	with craftCol1:
 		mass = st.number_input("Mass (kg)", 1, None, 1000, help = "The constant mass of your spacecraft")

@@ -110,44 +110,6 @@ def calculateAzimuth(i, startingLat):
 def calculateLAN(i, startingLat, azimuth):
 	return np.degrees(np.arcsin((np.sin(np.radians(azimuth)) * np.sin(np.radians(startingLat))) / np.sin(np.radians(i))))
 
-# Returns Pandas dataframe of latitude and longitude coordinates for the initial orbit's ground track.
-# Takes the initial orbit's apogee, perigee, inclination (in degrees), and starting longitude in degrees
-@st.cache(show_spinner = False)
-def calculateInitialOrbitTrackCoords(a, p, i, startingLat, startingLon):
-	_checkExtrema(a, p)
-
-	# Calculate period of given orbit
-	period = calculateOrbitalPeriod(a, p)
-
-	# Calculate the displacement of the Earth in a single orbit
-	nodalDisplacement = period * _OMEGA_EARTH
-	resolution = 100
-	# Determine launch direction depending starting latitude
-	if abs(startingLat - i) < 1:
-		i *= -1
-
-	if i == 0:
-		lat = np.linspace(0, 0, resolution)
-		lon = np.linspace(0, 360, resolution)
-	else:
-		oppStartingLat = -startingLat
-		oppStartingLon = startingLon + 180
-
-		peakInclinationLat = i
-		peakInclinationLon = (startingLon - startingLat) / 2
-
-		minInclinationLat = -i
-		minInclinationLon = peakInclinationLon + 180
-
-		# Starting, top, descending node, bottom, ascending node
-		lat = [startingLat, peakInclinationLat, oppStartingLat, minInclinationLat, startingLat]
-		lon = [startingLon, peakInclinationLon, oppStartingLon, minInclinationLon, startingLon]
-
-		for i in range(0, len(lon)):
-			lon[i] += nodalDisplacement
-
-	return pd.DataFrame({"lat" : lat, "lon" : lon})
-
 # Returns the acceleration experienced by the given mass at the given height with the given velocity,
 # drag coefficient, and reference area. Note that this uses Newton's second law F = ma and does
 # not take into account any effects of the velocity approaching the speed of light

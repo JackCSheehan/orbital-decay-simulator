@@ -1,11 +1,22 @@
 # File containing functions used to plot visualizations
+from re import M
 from orbital_mechanics import *
 import plotly.graph_objects as go
 import streamlit as st
 import altair as alt
+from poliastro.earth.plotting import GroundtrackPlotter
+from poliastro.earth import EarthSatellite
+from poliastro.twobody import Orbit
+from poliastro.bodies import Earth
+from astropy import units as u
+from poliastro.util import time_range
+import plotly.graph_objects as go
 
 # Color of ground track points
-_TRACK_COLOR = "dodgerblue"
+_TRACK_COLOR = "darkblue"
+
+_LAND_COLOR = "rgb(101, 186, 103)"
+_WATER_COLOR = "rgb(140, 181, 245)"
 
 # Color of launch site marker
 _LAUNCH_SITE_COLOR = "crimson"
@@ -26,47 +37,75 @@ COMMON_LAUNCH_SITES = {
 	"[JP] Tanegashima Space Center" : {"lat" : 30.37, "lon" : 130.96}
 }
 
-# Returns Plotly figure of scatter mapbox plot of the ground track of an orbit given: a Pandas dataframe
-# with the latitude and longitude, the starting latitude, starting longitude, and a flag indicating
-# whether or not to plot common launch sites
-@st.cache(show_spinner = False)
-def plotGroundTrack(coords, startingLat, startingLon, plotCommonSites):
-	# Add lat and lon of launch site to mark it on the map
-	coords = coords.append(pd.DataFrame([[startingLat, startingLon]], columns = ["lat", "lon"]))
+# Returns Plotly figure of scatter mapbox plot of the ground track of an orbit given: apogee, perigee,
+# inclination, starting lat, starting lon, and a flag indicating whether common launch sites should be plotted
+def plotGroundTrack(a, p, i, startingLat, startingLon, plotCommonSites):
+	fig = GroundtrackPlotter()
 
-	# Ground track and launch site point colors
-	colors = np.full(coords["lat"].size - 1, _TRACK_COLOR)
-	colors = np.append(colors, _LAUNCH_SITE_COLOR)
+	period = calculateOrbitalPeriod(a, p)
+	perigeeR = calculateMainFocusDistance(a, p, 0)
+	perigeeV = calculateOrbitalVelocity(a, p, 0)
+	rVector = np.array([np.cos(np.radians(i)) * perigeeR, 0, np.sin(np.radians(i)) * perigeeR]) * u.km
+	vVector = np.array([0, perigeeV, 0]) * u.km / u.s
 
-	text = np.full(coords["lat"].size - 1, "lat: %{lat}°, lon: %{lon}°<extra></extra>")
-	text = np.append(text, "🚀 Launch site<extra></extra>")
+	orbit = Orbit.from_vectors(Earth, rVector, vVector)
+	sat = EarthSatellite(orbit, None)
+	t_span = time_range(orbit.epoch - period * u.s, periods = 150, end = orbit.epoch + period * u.s)
+	
+	# Plot ground track
+	fig.plot(
+		sat,
+		t_span,
+		label = "Ground Track",
+		color = _TRACK_COLOR,
+		marker={"size": 0, "symbol": "triangle-right"},
+	)
 
-	# Add common sites if user wants to see them
-	if plotCommonSites:
-		for name, data in COMMON_LAUNCH_SITES.items():
-			coords = coords.append(pd.DataFrame([[data["lat"], data["lon"]]], columns = ["lat", "lon"]))
-			colors = np.append(colors, _COMMON_SITES_COLOR)
-			text = np.append(text, name + "<extra></extra>")
+	# Format map
+	fig.fig.update_geos(
+		bgcolor = "rgba(0, 0, 0, 0)",
+		showframe = False,
+		lataxis = {"showgrid" : False},
+		lonaxis = {"showgrid" : False},
+		oceancolor = _WATER_COLOR,
+		landcolor = _LAND_COLOR,
+	)
 
-	# Create plotly figure
-	fig = go.Figure(go.Scattergeo(
-		mode = "lines",
-		lat = coords["lat"],
-		lon = coords["lon"],
-		marker_color = colors,
-		hoverinfo = None,
-		hovertemplate = text,
-	))
+	fig.fig.update_traces(
+		marker = {"color" : "rgba(0, 0, 0, 0)"},
+	)
 
-	fig.update_geos(projection_type = "equirectangular")
-
-	fig.update_layout(
-		#mapbox = {"style" : "open-street-map"},
+	fig.fig.update_layout(
 		showlegend = False,
 		margin = {"l" : 0, "r" : 0, "b" : 0, "t" : 0}
 	)
 
-	return fig
+	# Add launch site point
+	fig.add_trace(
+		go.Scattergeo(
+			lat = [startingLat],
+			lon = [startingLon],
+			name = "Launch Site 🚀",
+			marker = {"color" : _LAUNCH_SITE_COLOR}
+		)
+	)
+
+	# Plot common launch sites if needed
+	if plotCommonSites:
+		# Collect data from common sites
+		for site, coords in COMMON_LAUNCH_SITES.items():
+			# Plot common sites
+			fig.add_trace(
+				go.Scattergeo(
+					lat = [coords["lat"]],
+					lon = [coords["lon"]],
+					text = site,
+					hoverinfo = "text",
+					marker = {"color" : _COMMON_SITES_COLOR}
+				)
+			)
+
+	return fig.fig
 
 # Returns Plotly figure showing possible landing area. Takes inclination of orbit
 def plotPossibleLandingArea(i):
