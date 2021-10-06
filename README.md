@@ -19,16 +19,23 @@ an estimate of when the spacecraft will land back on Earth as well as visualizat
 #### [Plotly](https://plotly.com/)
 - A data visualization library that allows for interactive 2D and 3D plots
 
+#### [poliastro](https://docs.poliastro.space/en/stable/)
+- Python library for visualizing and calculating orbits and orbital manuevers. Used to plot ground tracks
+
+#### [Astropy](https://www.astropy.org/)
+- Python library for general astronomy calculations
+
 #### [Altair](https://altair-viz.github.io/)
 - A declarative data visualization library for Python
 
 #### [Pandas](https://pandas.pydata.org/)
 - A data science library for Python used to store and transform data
 
-#### [Numpy](https://numpy.org/)
+#### [NumPy](https://numpy.org/)
 - A data science library for Python that supplies a powerful array data structure often preferable to Python's built-in list structure
 
 ## References
 - [National Oceanic and Atmospheric Administration, National Aeronautics and Space Administration, United States Air Force, *U.S. Standard Atmosphere, 1976*](https://www.ngdc.noaa.gov/stp/space-weather/online-publications/miscellaneous/us-standard-atmosphere-1976/us-standard-atmosphere_st76-1562_noaa.pdf)
 - [R. A. Braeunig, *Atmospheric Models*](http://www.braeunig.us/space/atmmodel.htm)
 - [USAFA Astronautics and Space Ops, *LSN 11 - Ground Tracks* [YouTube]](https://youtu.be/Q4AQT0vDV_M)
+- R. R. Bate, D. D. Mueller, J. E. White, and W. W. Saylor, *Fundamentals of Astrodynamics.* Second Edition

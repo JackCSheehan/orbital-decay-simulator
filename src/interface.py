@@ -61,7 +61,7 @@ def main():
 		apogee = st.number_input("Apogee (km)", 150, 1000, help = "The distance the farthest part of your orbit is from Earth's surface")
 		startDate = st.date_input("Orbit insertion date", help = "Date of insertion into starting orbit")
 		inclination = st.slider("Inclination (°)", 0, 90, 0, format = _DEGREE_FORMAT, help = "The angle of your orbit with respect to Earth's equatorial plane")
-		argOfPerigee = st.slider("Argument of Perigee (°)", 0, 360, 0, format = _DEGREE_FORMAT, help = "Angle between the ascending node and perigee.")
+		argOfPerigee = st.slider("Argument of Perigee (°)", 0, 360, 0, format = _DEGREE_FORMAT, help = "Angle between the ascending node and perigee")
 
 		# Check that inclination is valid given launch site latitude
 		if inclination < abs(startingLat):
@@ -77,8 +77,8 @@ def main():
 		startingLon = lonInput.number_input("Launch Site Longitude (°)", -180.0, 180.0, 0.0, help = "The longitude, in degrees, that your vehicle launched from")
 		perigee = st.number_input("Perigee (km)", 150, 1000, help = "The distance the closest part of your orbit is from Earth's surface")
 		startTime = st.time_input("Orbit insertion time (UTC)", value = time(0, 0, 0), help = "Time of insertion into starting orbit. Uses 24-hour time")
-		raan = st.slider("Right Ascension of the Ascending Node (°)", 0, 360, 0, format = _DEGREE_FORMAT, help = "Angle between the First Point of Area to the ascending node.")
-		trueAnomaly = st.slider("True Anomaly (°)", 0, 360, 0, format = _DEGREE_FORMAT, help = "Angle between spacecraft's position and direction of perigee.")
+		raan = st.slider("Right Ascension of the Ascending Node (°)", 0, 360, 0, format = _DEGREE_FORMAT, help = "Angle between the I unit vector and the ascending node")
+		trueAnomaly = st.slider("True Anomaly (°)", 0, 360, 0, format = _DEGREE_FORMAT, help = "Angle between spacecraft's position and perigee at epoch")
 
 	# Check that apogee is >= perigee
 	if apogee < perigee:
@@ -112,7 +112,7 @@ def main():
 	with craftCol2:
 		dragCoefficient = st.number_input("Drag Coefficient", .10, 5.00, 1.15, help = "Also know as coefficient of drag. Often approximated as 2.2 for spherical spacecraft")
 	
-	averageArea = st.number_input("Average cross-sectional area (m²)", .10, None, 1.00, help = "The average cross-sectional area of your spacecraft perpendicular to airflow")
+	averageArea = st.number_input("Average cross-sectional area (m²)", .0001, None, 1.00, help = "The average cross-sectional area of your spacecraft perpendicular to airflow")
 	timeStep = st.number_input("Time Step (s)", 1, 3600, 300, help = "The number of seconds skipped in simulation loop. Lower numbers are more accurate, but take much longer. Larger numbers are faster, but lead to less precise visualizations and predictions")
 
 	"""
