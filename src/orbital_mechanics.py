@@ -37,16 +37,6 @@ def calculateSemiMajorAxis(a, p):
 	_checkExtrema(a, p)
 	return ((a + RADIUS) + (p + RADIUS)) / 2
 
-# Returns the semi-minor axis in km from apogee and perigee in km
-def calculateSemiMinorAxis(a, p):
-	_checkExtrema(a, p)
-
-	# Calculate semi-major axis and eccentricity
-	semiMajorAxis = calculateSemiMajorAxis(a, p)
-	eccentricity = calculateEccentricity(a, p)
-
-	return semiMajorAxis * np.sqrt(1 - eccentricity**2)
-
 # Returns eccentricity of orbit from apogee and perigee in km
 def calculateEccentricity(a, p):
 	_checkExtrema(a, p)
@@ -70,15 +60,6 @@ def calculateMainFocusDistance(a, p, theta):
 
 	return numerator / denominator
 
-# Returns current distance from main focus of elliptical orbit given the semi-major axis,
-# eccentricity, and angle theta from the perigee
-def calculateMainFocusDistanceFromSemiMajorAxis(semiMajorAxis, eccentricity, theta):
-	# Calculate numerator and denominator separately of the equation represented by Kepler's first law
-	numerator = semiMajorAxis * (1 - eccentricity**2)
-	denominator = 1 + eccentricity * np.cos(np.radians(theta))
-
-	return numerator / denominator
-
 # Calculates orbital velocity at a given angle theta from perigee given apogee and perigee
 def calculateOrbitalVelocity(a, p, theta):
 	_checkExtrema(a, p)
@@ -91,24 +72,11 @@ def calculateOrbitalVelocity(a, p, theta):
 
 	return np.sqrt(MU * ratioDifference)
 
-# Returns the angle to be added or subtracted to the longitude to correct for Earth's rotation
-def calculateNodalDisplacementAngle(nodalDisplacement, angle):
-	# sin(angle / 4) is used since it reaches 0 only at angle = 0 and 360
-	return np.abs((nodalDisplacement / 2) * np.sin(np.radians(angle) / 4))
-
 # Calculates the semi-major axis from the Vis-viva equation. Used to determine how the semi-major
 # axis of an orbit changes due to velocity changes caused by drag force. Takes the distance from
 # the body being orbited and the instantaneous orbital velocity
 def calculateSemiMajorAxisFromVisViva(r, v):
 	return -(MU * r) / (v**2 * r - 2 * MU)
-
-# Returns launch azimuth in degrees given launch lat and target inclination
-def calculateAzimuth(i, startingLat):
-	return np.degrees(np.arcsin(np.cos(np.radians(i)) / np.cos(np.radians(startingLat))))
-
-# Returns longitude of the ascending node given launch azimuth, starting latitude, and inclination
-def calculateLAN(i, startingLat, azimuth):
-	return np.degrees(np.arcsin((np.sin(np.radians(azimuth)) * np.sin(np.radians(startingLat))) / np.sin(np.radians(i))))
 
 # Returns the acceleration experienced by the given mass at the given height with the given velocity,
 # drag coefficient, and reference area. Note that this uses Newton's second law F = ma and does

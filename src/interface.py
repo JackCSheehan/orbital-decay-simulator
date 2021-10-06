@@ -1,6 +1,5 @@
 # File containing Streamlit interface controls
 import streamlit as st
-import math
 from plotting import *
 from datetime import timedelta, datetime, time
 
@@ -138,9 +137,16 @@ def main():
 			#### Estimated Landing
 
 			`{landingDateStr}`
-
-			The spacecraft has the possibility of landing between `{inclination}°` latitude and `-{inclination}°` latitude. The possible landing area is highlighted on the map below.
 			"""
+
+			if inclination == 0:
+				"The spacecraft was put into an equatorial orbit and as such can only land on the Equator, which is shown on the map below."
+			else:
+				f"""
+				The spacecraft has the possibility of landing between `{inclination}°` latitude and `-{inclination}°` latitude. The spacecraft's ground track over several orbits is shown on the map below.
+				"""
+				
+
 			st.plotly_chart(plotGroundTrack(apogee, perigee, inclination, raan, argOfPerigee, trueAnomaly, startingLat, startingLon, proj, True), use_container_width = True)
 
 		if telemetry is None:

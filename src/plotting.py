@@ -1,5 +1,4 @@
 # File containing functions used to plot visualizations
-from re import M
 from orbital_mechanics import *
 import plotly.graph_objects as go
 import streamlit as st
@@ -51,6 +50,7 @@ PROJECTION_TYPES = [
 # Returns Plotly figure of scatter mapbox plot of the ground track of an orbit given: apogee, perigee,
 # inclination, right ascension of the ascending node, argument of perigee, true anomaly, starting lat,
 # and starting lon
+@st.cache(show_spinner = False)
 def plotGroundTrack(a, p, i, raan, argOfPerigee, trueAnomaly, startingLat, startingLon, proj = PROJECTION_TYPES[0], showMany = False):
 	fig = GroundtrackPlotter()
 
@@ -63,6 +63,7 @@ def plotGroundTrack(a, p, i, raan, argOfPerigee, trueAnomaly, startingLat, start
 	if showMany:
 		period *= 86400 / period / 2
 
+	# Create objection needed for poliastro GroundPlotter
 	orbit = Orbit.from_classical(Earth, semiMajoraxis * u.km, eccentricity * u.one, i * u.deg, raan * u.deg, argOfPerigee * u.deg, trueAnomaly * u.deg)
 	sat = EarthSatellite(orbit, None)
 	t_span = time_range(orbit.epoch - period * u.s, periods = 150, end = orbit.epoch + period * u.s)
@@ -113,27 +114,6 @@ def plotGroundTrack(a, p, i, raan, argOfPerigee, trueAnomaly, startingLat, start
 	)
 
 	return fig.fig
-
-# Returns Plotly figure showing possible landing area. Takes inclination of orbit
-def plotPossibleLandingArea(i):
-	# Create plotly figure
-	fig = go.Figure(go.Scattermapbox(
-		mode = "lines",
-		fill = "toself",
-		lat = [i, i, -i, -i],
-		lon = [-180, 180, 180, -180],
-		marker = {"opacity" : [0, 0, 0, 0]},
-		marker_color = _TRACK_COLOR,
-		),
-	)
-
-	fig.update_layout(
-		mapbox = {"style" : "open-street-map"},
-		showlegend = False,
-		margin = {"l" : 0, "r" : 0, "b" : 0, "t" : 0}
-	)
-
-	return fig
 
 # Returns Altair chart visualizing telemetry data. Takes telemetry dataframe, name of column to visualize over time, and the
 # Y-axis label for the plot
