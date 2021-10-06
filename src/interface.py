@@ -7,20 +7,6 @@ from datetime import timedelta, datetime, time
 # Format string for degree inputs
 _DEGREE_FORMAT = "%d°"
 
-# Prompt text for lat and lon inputs
-_LAT_PROMPT = "Starting Latitude (°)"
-_LON_PROMPT = "Starting Longitude (°)"
-
-# Help text for lat and lon inputs
-_LAT_HELP = "The latitude, in degrees, that your vehicle launched from"
-_LON_HELP = "The longitude, in degrees, that your vehicle launched from"
-
-# Prompt text for inclination input
-_INCLINATION_PROMPT = "Inclination (°)"
-
-# Help text for inclination input
-_INCLINATION_HELP = "The angle of your orbit with respect to Earth's equatorial plane"
-
 st.set_page_config(page_title = "Orbital Decay Simulator", layout = "centered", page_icon = "../assets/favicon.png")
 
 # Main driver for Streamlit inputs and calling of other files' functions
@@ -57,6 +43,13 @@ def main():
 	---
 	## Part 1: Orbital Parameters
 	Enter the basic parameters of your spacecraft's starting orbit.
+	
+	Only the apogee, perigee, inclination, and insertion date/time need to be accurate for the
+	simulator to be accurate. The remaining parameters are for more accurately plotting the ground track of your orbit. If you do not care about the ground track's
+	accuracy, you can leave the RAAN, argument of perigee, and true anomaly field at their default values.
+	
+	The launch latitude and longitude are also optional, as
+	they simply allow you to visualize the launch site on the map.
 	"""
 
 	orbitCol1, orbitCol2 = st.columns(2)
@@ -65,32 +58,28 @@ def main():
 		# Placeholder for lat input
 		latInput = st.empty()
 
-		startingLat = latInput.number_input(_LAT_PROMPT, -90.0, 90.0, 0.0, help = _LAT_HELP)
+		startingLat = latInput.number_input("Launch Site Latitude (°)", -90.0, 90.0, 0.0, help = "The latitude, in degrees, that your vehicle launched from")
 		apogee = st.number_input("Apogee (km)", 150, 1000, help = "The distance the farthest part of your orbit is from Earth's surface")
 		startDate = st.date_input("Orbit insertion date", help = "Date of insertion into starting orbit")
-		
-		# Placeholder for inclination input
-		inclinationInput = st.empty()
+		inclination = st.slider("Inclination (°)", 0, 90, 0, format = _DEGREE_FORMAT, help = "The angle of your orbit with respect to Earth's equatorial plane")
+		argOfPerigee = st.slider("Argument of Perigee (°)", 0, 360, 0, format = _DEGREE_FORMAT, help = "Angle between the ascending node and perigee.")
 
-		inclination = inclinationInput.slider(_INCLINATION_PROMPT, 0, 90, 0, format = _DEGREE_FORMAT, help = _INCLINATION_HELP)
+		# Check that inclination is valid given launch site latitude
+		if inclination < abs(startingLat):
+			"""
+			#### Orbital inclination cannot be less than starting latitude
+			"""
+			return
 
 	with orbitCol2:
 		# Placeholder inputs for lon input
 		lonInput = st.empty()
 
-		startingLon = lonInput.number_input(_LON_PROMPT, -180.0, 180.0, 0.0, help = _LON_HELP)
+		startingLon = lonInput.number_input("Launch Site Longitude (°)", -180.0, 180.0, 0.0, help = "The longitude, in degrees, that your vehicle launched from")
 		perigee = st.number_input("Perigee (km)", 150, 1000, help = "The distance the closest part of your orbit is from Earth's surface")
 		startTime = st.time_input("Orbit insertion time (UTC)", value = time(0, 0, 0), help = "Time of insertion into starting orbit. Uses 24-hour time")
-		commonSitePreset = st.selectbox("Launch site preset", list(COMMON_LAUNCH_SITES.keys()), help = "Select from a list of common launch sites")
-	
-	plotCommonSites = st.checkbox("Visualize common launch sites", help = "Option to plot points of common launch sites on the map")
-
-	# If site preset isn't custom, fill in relevant details of the site
-	if commonSitePreset != "Custom":
-		startingLat = latInput.number_input(_LAT_PROMPT, -90.0, 90.0, COMMON_LAUNCH_SITES[commonSitePreset]["lat"], help = _LAT_HELP)
-		startingLon = lonInput.number_input(_LON_PROMPT, -180.0, 180.0, float(COMMON_LAUNCH_SITES[commonSitePreset]["lon"]), help = _LON_HELP)
-
-		inclination = inclinationInput.slider(_INCLINATION_PROMPT, 0, 90, math.ceil(COMMON_LAUNCH_SITES[commonSitePreset]["lat"]), format = _DEGREE_FORMAT, help = _INCLINATION_HELP)
+		raan = st.slider("Right Ascension of the Ascending Node (°)", 0, 360, 0, format = _DEGREE_FORMAT, help = "Angle between the First Point of Area to the ascending node.")
+		trueAnomaly = st.slider("True Anomaly (°)", 0, 360, 0, format = _DEGREE_FORMAT, help = "Angle between spacecraft's position and direction of perigee.")
 
 	# Check that apogee is >= perigee
 	if apogee < perigee:
@@ -99,19 +88,11 @@ def main():
 		"""
 		return
 
-	# Check that inclination is valid given launch site latitude
-	if inclination < abs(startingLat):
-		"""
-		#### Orbital inclination cannot be less than starting latitude
-		"""
-		return
-
 	"""
-	#### Initial Orbit Ground Track
-
-	Shown is the first full orbit after orbital insertion. The seam in the orbit is a visualizations of the effect of Earth's rotation.
+	#### Ground Track
+	Shown below is the ground track of your orbit.
 	"""
-	st.plotly_chart(plotGroundTrack(apogee, perigee, inclination, startingLat, startingLon, plotCommonSites), use_container_width = True)
+	st.plotly_chart(plotGroundTrack(apogee, perigee, inclination, raan, argOfPerigee, trueAnomaly, startingLat, startingLon), use_container_width = True)
 
 	"""
 	---

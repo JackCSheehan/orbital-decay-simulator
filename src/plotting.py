@@ -15,40 +15,26 @@ import plotly.graph_objects as go
 # Color of ground track points
 _TRACK_COLOR = "darkblue"
 
-_LAND_COLOR = "rgb(101, 186, 103)"
+# Map element colors
+_LAND_COLOR = "white"
 _WATER_COLOR = "rgb(140, 181, 245)"
+_COUNTRY_COLOR = "lightgray"
 
 # Color of launch site marker
 _LAUNCH_SITE_COLOR = "crimson"
 
-# Color of common launch sites
-_COMMON_SITES_COLOR = "mediumblue"
-
-# Data for common launch sites
-COMMON_LAUNCH_SITES = {
-	"Custom" : {"lat" : None, "lon" : None},
-	"[US, FL] Kennedy Space Center" : {"lat" : 28.57, "lon" : -80.65},
-	"[US, FL] Cape Canaveral Space Force Station": {"lat" : 28.49, "lon" : -80.57},
-	"[US, VA] Wallops Flight Facility" : {"lat" : 37.94, "lon" : -75.47},
-	"[US, CA] Vandenberg Space Force Base" : {"lat" : 34.74, "lon" : -120.57},
-	"[KZ] Baikonur Cosmodrome" : {"lat" : 45.96, "lon" : 63.31},
-	"[RU] Plesetsk Cosmodrome" : {"lat" : 62.93, "lon" : 40.57},
-	"[GF] Guiana Space Center" : {"lat" : 5.17, "lon" : -52.68},
-	"[JP] Tanegashima Space Center" : {"lat" : 30.37, "lon" : 130.96}
-}
-
 # Returns Plotly figure of scatter mapbox plot of the ground track of an orbit given: apogee, perigee,
-# inclination, starting lat, starting lon, and a flag indicating whether common launch sites should be plotted
-def plotGroundTrack(a, p, i, startingLat, startingLon, plotCommonSites):
+# inclination, right ascension of the ascending node, argument of perigee, true anomaly, starting lat,
+# and starting lon
+def plotGroundTrack(a, p, i, raan, argOfPerigee, trueAnomaly, startingLat, startingLon):
 	fig = GroundtrackPlotter()
 
+	# Derive orbital elements needed to plot ground track
 	period = calculateOrbitalPeriod(a, p)
-	perigeeR = calculateMainFocusDistance(a, p, 0)
-	perigeeV = calculateOrbitalVelocity(a, p, 0)
-	rVector = np.array([np.cos(np.radians(i)) * perigeeR, 0, np.sin(np.radians(i)) * perigeeR]) * u.km
-	vVector = np.array([0, perigeeV, 0]) * u.km / u.s
+	semiMajoraxis = calculateSemiMajorAxis(a, p)
+	eccentricity = calculateEccentricity(a, p)
 
-	orbit = Orbit.from_vectors(Earth, rVector, vVector)
+	orbit = Orbit.from_classical(Earth, semiMajoraxis * u.km, eccentricity * u.one, i * u.deg, raan * u.deg, argOfPerigee * u.deg, trueAnomaly * u.deg)
 	sat = EarthSatellite(orbit, None)
 	t_span = time_range(orbit.epoch - period * u.s, periods = 150, end = orbit.epoch + period * u.s)
 	
@@ -67,8 +53,14 @@ def plotGroundTrack(a, p, i, startingLat, startingLon, plotCommonSites):
 		showframe = False,
 		lataxis = {"showgrid" : False},
 		lonaxis = {"showgrid" : False},
+		showlakes = True,
+		showcountries = True,
+		showrivers = True,
 		oceancolor = _WATER_COLOR,
 		landcolor = _LAND_COLOR,
+		lakecolor = _WATER_COLOR,
+		rivercolor = _WATER_COLOR,
+		countrycolor = _COUNTRY_COLOR,
 	)
 
 	fig.fig.update_traces(
@@ -89,21 +81,6 @@ def plotGroundTrack(a, p, i, startingLat, startingLon, plotCommonSites):
 			marker = {"color" : _LAUNCH_SITE_COLOR}
 		)
 	)
-
-	# Plot common launch sites if needed
-	if plotCommonSites:
-		# Collect data from common sites
-		for site, coords in COMMON_LAUNCH_SITES.items():
-			# Plot common sites
-			fig.add_trace(
-				go.Scattergeo(
-					lat = [coords["lat"]],
-					lon = [coords["lon"]],
-					text = site,
-					hoverinfo = "text",
-					marker = {"color" : _COMMON_SITES_COLOR}
-				)
-			)
 
 	return fig.fig
 
