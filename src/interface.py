@@ -62,13 +62,6 @@ def main():
 		inclination = st.slider("Inclination (°)", 0, 90, 0, format = _DEGREE_FORMAT, help = "The angle of your orbit with respect to Earth's equatorial plane")
 		argOfPerigee = st.slider("Argument of Perigee (°)", 0, 360, 0, format = _DEGREE_FORMAT, help = "Angle between the ascending node and perigee")
 
-		# Check that inclination is valid given launch site latitude
-		if inclination < abs(startingLat):
-			"""
-			#### Orbital inclination cannot be less than starting latitude
-			"""
-			return
-
 	with orbitCol2:
 		# Placeholder inputs for lon input
 		lonInput = st.empty()
@@ -78,6 +71,13 @@ def main():
 		startTime = st.time_input("Orbit insertion time (UTC)", value = time(0, 0, 0), help = "Time of insertion into starting orbit. Uses 24-hour time")
 		raan = st.slider("Right Ascension of the Ascending Node (°)", 0, 360, 0, format = _DEGREE_FORMAT, help = "Angle between the I unit vector and the ascending node")
 		trueAnomaly = st.slider("True Anomaly (°)", 0, 360, 0, format = _DEGREE_FORMAT, help = "Angle between spacecraft's position and perigee at epoch")
+
+	# Check that inclination is valid given launch site latitude
+	if inclination < abs(startingLat):
+		"""
+		#### Orbital inclination cannot be less than starting latitude
+		"""
+		return
 
 	# Check that apogee is >= perigee
 	if apogee < perigee:
