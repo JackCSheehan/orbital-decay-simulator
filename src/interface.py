@@ -44,7 +44,7 @@ def main():
 	Enter the basic parameters of your spacecraft's starting orbit.
 	
 	Only the apogee, perigee, inclination, and insertion date/time need to be provided for the
-	simulator to work. The remaining parameters are for more precisely plotting the ground track of your orbit. If you do not care about the ground track's
+	simulator to work. The remaining parameters are only needed to more precisely plot the ground track of your orbit. If you do not care about the ground track's
 	accuracy, you can leave the RAAN, argument of perigee, and true anomaly fields at their default values.
 	
 	The launch latitude and longitude are also optional as they simply allow you to visualize the launch site on the map.
