@@ -43,30 +43,20 @@ def main():
 	## Part 1: Orbital Parameters
 	Enter the basic parameters of your spacecraft's starting orbit.
 	
-	Only the apogee, perigee, inclination, and insertion date/time need to be provided for the
-	simulator to work. The remaining parameters are only needed to more precisely plot the ground track of your orbit. If you do not care about the ground track's
-	accuracy, you can leave the RAAN, argument of perigee, and true anomaly fields at their default values.
-	
-	The launch latitude and longitude are also optional as they simply allow you to visualize the launch site on the map.
+	Note that the launch latitude and longitude are optional and simply allow for visualizing the launch site on the map below.
 	"""
 
 	orbitCol1, orbitCol2 = st.columns(2)
 
 	with orbitCol1:
-		# Placeholder for lat input
-		latInput = st.empty()
-
-		startingLat = latInput.number_input("Launch Site Latitude (°)", -90.0, 90.0, 0.0, help = "The latitude, in degrees, that your vehicle launched from")
+		startingLat = st.number_input("Launch Site Latitude (°)", -90.0, 90.0, 0.0, help = "The latitude, in degrees, that your vehicle launched from")
 		apogee = st.number_input("Apogee (km)", 150, 1000, help = "The distance the farthest part of your orbit is from Earth's surface")
 		startDate = st.date_input("Orbit insertion date", help = "Date of insertion into starting orbit")
 		inclination = st.slider("Inclination (°)", 0, 90, 0, format = _DEGREE_FORMAT, help = "The angle of your orbit with respect to Earth's equatorial plane")
 		argOfPerigee = st.slider("Argument of Perigee (°)", 0, 360, 0, format = _DEGREE_FORMAT, help = "Angle between the ascending node and perigee")
 
 	with orbitCol2:
-		# Placeholder inputs for lon input
-		lonInput = st.empty()
-
-		startingLon = lonInput.number_input("Launch Site Longitude (°)", -180.0, 180.0, 0.0, help = "The longitude, in degrees, that your vehicle launched from")
+		startingLon = st.number_input("Launch Site Longitude (°)", -180.0, 180.0, 0.0, help = "The longitude, in degrees, that your vehicle launched from")
 		perigee = st.number_input("Perigee (km)", 150, 1000, help = "The distance the closest part of your orbit is from Earth's surface")
 		startTime = st.time_input("Orbit insertion time (UTC)", value = time(0, 0, 0), help = "Time of insertion into starting orbit. Uses 24-hour time")
 		raan = st.slider("Right Ascension of the Ascending Node (°)", 0, 360, 0, format = _DEGREE_FORMAT, help = "Angle between the I unit vector and the ascending node")
@@ -75,14 +65,14 @@ def main():
 	# Check that inclination is valid given launch site latitude
 	if inclination < abs(startingLat):
 		"""
-		#### Orbital inclination cannot be less than starting latitude
+		#### ⛔ Orbital inclination cannot be less than starting latitude
 		"""
 		return
 
 	# Check that apogee is >= perigee
 	if apogee < perigee:
 		"""
-		#### Apogee must be greater than or equal to perigee
+		#### ⛔ Apogee must be greater than or equal to perigee
 		"""
 		return
 
