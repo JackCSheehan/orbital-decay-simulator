@@ -37,6 +37,9 @@ def calculateSemiMajorAxis(a, p):
 	_checkExtrema(a, p)
 	return ((a + RADIUS) + (p + RADIUS)) / 2
 
+def calculateSemiMinorAxis(a, p):
+	return math.sqrt((a + RADIUS) + (p + RADIUS))
+
 # Returns eccentricity of orbit from apogee and perigee in km
 def calculateEccentricity(a, p):
 	_checkExtrema(a, p)

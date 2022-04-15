@@ -151,6 +151,9 @@ def main():
 		pass
 
 	if st.button("Simulate"):
+		simulate(apogee, perigee, inclination, argOfPerigee, raan, trueAnomaly, mass, dragCoefficient, averageArea, timeStep)
+
+		'''
 		with st.spinner("Running Simulation..."):
 			totalElapsedSeconds, telemetry = simulateOrbitalDecay(apogee, perigee, inclination, mass, dragCoefficient, averageArea, timeStep)
 			
@@ -199,6 +202,7 @@ def main():
 
 				"#### Acceleration Due to Drag Over Time"
 				st.altair_chart(plotTelemetry(telemetry, "dragAcceleration", "Acceleration Due to Drag m/s²"), use_container_width = True)
+				'''
 
 if __name__ == "__main__":
 	main()
