@@ -2,14 +2,51 @@
 import streamlit as st
 from plotting import *
 from datetime import timedelta, datetime, time
+from sim import simulate
 
 # Format string for degree inputs
 _DEGREE_FORMAT = "%d°"
 
-st.set_page_config(page_title = "Orbital Decay Simulator", layout = "centered", page_icon = "../assets/favicon.png")
+st.set_page_config(page_title = "Orbital Decay Simulator", layout = "wide", page_icon = "../assets/favicon.png")
+
+plot1, plot2 = plotOrbit()
+st.plotly_chart(plot1, use_container_width = True)
+st.plotly_chart(plot2, use_container_width = True)
 
 # Main driver for Streamlit inputs and calling of other files' functions
 def main():
+	# News/changelog sidebar
+	with st.sidebar:
+		"""
+		# News
+		"""
+
+		"""
+		## Welcome to v1.2!
+		If you're reading this, then you are currently running the newest version of the Orbital Decay Simulator: v1.2.
+		"""
+
+		"""
+		---
+		# Changelog
+		"""
+
+		# Changelog expanders
+		with st.expander("v1.2"):
+			"""
+			- *List of changes*
+			"""
+
+		with st.expander("v1.1"):
+			"""
+			- *List of changes*
+			"""
+
+		with st.expander("v1.0"):
+			"""
+			- *List of changes*
+			"""
+
 	# Blank string needed to ensure Streamlit recognizes first multi-line string as markdown
 	""
 

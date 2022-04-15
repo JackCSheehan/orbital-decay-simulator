@@ -11,6 +11,12 @@ from astropy import units as u
 from poliastro.util import time_range
 import plotly.graph_objects as go
 
+from astropy import units as u
+from poliastro.examples import iss
+from poliastro.bodies import Earth
+from poliastro.twobody import Orbit
+from poliastro.plotting import OrbitPlotter2D, OrbitPlotter3D
+
 # Color of ground track points
 _TRACK_COLOR = "darkblue"
 
@@ -46,6 +52,15 @@ PROJECTION_TYPES = [
 	"Aitoff",
 	"Sinusoidal"
 ]
+
+def plotOrbit():
+	orbit = iss
+
+	orbitPlotter2D = OrbitPlotter2D()
+
+	orbitPlotter3D = OrbitPlotter3D()
+
+	return (orbitPlotter2D.plot(iss), orbitPlotter3D.plot(iss))
 
 # Returns Plotly figure of scatter mapbox plot of the ground track of an orbit given: apogee, perigee,
 # inclination, right ascension of the ascending node, argument of perigee, true anomaly, starting lat,
