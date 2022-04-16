@@ -4,6 +4,7 @@ from poliastro.twobody import Orbit
 from orbital_mechanics import *
 from astropy.coordinates import SphericalRepresentation
 from poliastro.earth import *
+from pymsis import msis
 
 EARTH_RADIUS_KM = 6378.1366 * u.km
 
