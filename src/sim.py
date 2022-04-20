@@ -9,8 +9,6 @@ from datetime import *
 import constants
 import util
 
-swData = util.readSpaceWeatherData()
-
 EARTH_RADIUS_KM = 6378.1366 * u.km
 
 # Class used to encapsulate simulation
