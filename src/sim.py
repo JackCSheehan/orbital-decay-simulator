@@ -85,14 +85,4 @@ class Simulator:
             print(f"Altitude: {alt}")
 
             orbit = orbit.propagate(1 * u.min)
-
-
-date = datetime(2000, 1, 1, 12, 30)
-lat = 55
-lon = 45
-height = 100
-sim = Simulator()
-#density = sim.getAtmosDensity(date, lon, lat, height)
-print(sim.getAP(date))
-        
         
