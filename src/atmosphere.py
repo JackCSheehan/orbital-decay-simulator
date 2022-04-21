@@ -60,7 +60,7 @@ class Atmosphere:
 
         return currentAP
 
-    # Returns total atmospheric density from datetime, lat, lon, altitude, f107, f07a and ap
+    # Returns total atmospheric density from datetime, lat, lon, altitude (km), f107, f07a and ap
     def getDensity(self, dt, lon, lat, alt):
         spaceWeatherToday = self.getDaysSpaceWeather(dt)
 

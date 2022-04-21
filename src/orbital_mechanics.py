@@ -1,6 +1,7 @@
 # File containing functions used for calculating orbital elements
 import numpy as np
 import pandas as pd
+import math
 import streamlit as st
 from atmosphere import *
 

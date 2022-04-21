@@ -11,6 +11,7 @@ from poliastro.bodies import Earth
 from astropy import units as u
 from poliastro.util import time_range
 import plotly.graph_objects as go
+from astropy.time import Time
 
 from astropy import units as u
 from poliastro.examples import iss
@@ -67,7 +68,7 @@ def plotOrbit():
 # inclination, right ascension of the ascending node, argument of perigee, true anomaly, starting lat,
 # and starting lon
 @st.cache(show_spinner = False)
-def plotGroundTrack(a, p, i, raan, argOfPerigee, trueAnomaly, startingLat, startingLon, proj = PROJECTION_TYPES[0], showMany = False):
+def plotGroundTrack(epochDateTime, a, p, i, raan, argOfPerigee, trueAnomaly, startingLat, startingLon, proj = PROJECTION_TYPES[0], showMany = False):
 	fig = GroundtrackPlotter()
 
 	# Derive orbital elements needed to plot ground track
@@ -79,10 +80,14 @@ def plotGroundTrack(a, p, i, raan, argOfPerigee, trueAnomaly, startingLat, start
 	if showMany:
 		period *= 86400 / period / 2
 
+
+	epoch = Time(epochDateTime.strftime("%Y-%m-%dT%H:%M:%S"))
+	print(epoch)
+
 	# Create objection needed for poliastro GroundPlotter
-	orbit = Orbit.from_classical(Earth, semiMajoraxis * u.km, eccentricity * u.one, i * u.deg, raan * u.deg, argOfPerigee * u.deg, trueAnomaly * u.deg)
+	orbit = Orbit.from_classical(Earth, semiMajoraxis * u.km, eccentricity * u.one, i * u.deg, raan * u.deg, argOfPerigee * u.deg, trueAnomaly * u.deg, epoch)
 	sat = EarthSatellite(orbit, None)
-	t_span = time_range(orbit.epoch - period * u.s, periods = 150, end = orbit.epoch + period * u.s)
+	t_span = time_range(orbit.epoch, end = orbit.epoch + period * u.s)
 	
 	# Plot ground track
 	fig.plot(

@@ -1,17 +1,13 @@
 # File containing Streamlit interface controls
 import streamlit as st
 from plotting import *
-from datetime import timedelta, datetime, time
-from sim import simulate
+from datetime import datetime, time
+from sim import *
 
 # Format string for degree inputs
 _DEGREE_FORMAT = "%d°"
 
 st.set_page_config(page_title = "Orbital Decay Simulator", layout = "wide", page_icon = "../assets/favicon.png")
-
-plot1, plot2 = plotOrbit()
-st.plotly_chart(plot1, use_container_width = True)
-st.plotly_chart(plot2, use_container_width = True)
 
 # Main driver for Streamlit inputs and calling of other files' functions
 def main():
@@ -118,7 +114,8 @@ def main():
 	Shown below is the ground track of your orbit.
 	"""
 	proj = st.selectbox("Map Projection", PROJECTION_TYPES)
-	st.plotly_chart(plotGroundTrack(apogee, perigee, inclination, raan, argOfPerigee, trueAnomaly, startingLat, startingLon, proj), use_container_width = True)
+	epochDatetime = datetime.combine(startDate, startTime)
+	st.plotly_chart(plotGroundTrack(epochDatetime, apogee, perigee, inclination, raan, argOfPerigee, trueAnomaly, startingLat, startingLon, proj), use_container_width = True)
 
 	"""
 	---
@@ -151,7 +148,9 @@ def main():
 		pass
 
 	if st.button("Simulate"):
-		simulate(apogee, perigee, inclination, argOfPerigee, raan, trueAnomaly, mass, dragCoefficient, averageArea, timeStep)
+		startDatetime = datetime.combine(startDate, startTime)
+		sim = Simulator()
+		sim.simulate(startDatetime, apogee, perigee, inclination, argOfPerigee, raan, trueAnomaly, mass, dragCoefficient, averageArea, timeStep)
 
 		'''
 		with st.spinner("Running Simulation..."):

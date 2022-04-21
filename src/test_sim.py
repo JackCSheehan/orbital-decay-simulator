@@ -6,9 +6,6 @@ import pytest
 # Tests retrival of planetary equivalent amplitude based on time period
 def test_ap():
     date = datetime(2000, 1, 1, 1, 30)
-    lat = 25
-    lon = 40
-    height = 150
     atmos = Atmosphere()
     spaceWeatherToday = atmos.getDaysSpaceWeather(date)
 
