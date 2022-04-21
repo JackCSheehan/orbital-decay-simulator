@@ -4,7 +4,7 @@ from poliastro.twobody import Orbit
 from orbital_mechanics import *
 from astropy.coordinates import SphericalRepresentation
 from poliastro.earth import *
-from pymsis import msis
+
 from datetime import *
 import constants
 import util
@@ -15,53 +15,7 @@ EARTH_RADIUS_KM = 6378.1366 * u.km
 class Simulator:
     def __init__(self):
         self.spaceWeatherData = util.readSpaceWeatherData()
-
-    # Returns COPY of space weather data
-    def getSpaceWeatherData(self):
-        return self.spaceWeatherData.copy()
-
-    # Returns planetary equivalent amplitude for the given time given the given day's space weather row
-    def getAP(self, dt):
-        spaceWeatherToday = self.spaceWeatherData[self.spaceWeatherData[constants.DATE_FIELD] == dt.date()]
-
-        # Convert current time to an integer 24-hour format
-        currentTime = int(dt.strftime("%H%M"))
-
-        currentAP = None
-
-        # Get AP value based on time inveral. Intervals from https://celestrak.com/SpaceData/SpaceWx-format.php
-        if currentTime in range(0, 300):
-            currentAP = spaceWeatherToday[constants.AP1_FIELD].values[0]
-        elif currentTime in range(300, 600):
-            currentAP = spaceWeatherToday[constants.AP2_FIELD].values[0]
-        elif currentTime in range(600, 900):
-            currentAP = spaceWeatherToday[constants.AP3_FIELD].values[0]
-        elif currentTime in range(900, 1200):
-            currentAP = spaceWeatherToday[constants.AP4_FIELD].values[0]
-        elif currentTime in range(1200, 1500):
-            currentAP = spaceWeatherToday[constants.AP5_FIELD].values[0]
-        elif currentTime in range(1500, 1800):
-            currentAP = spaceWeatherToday[constants.AP6_FIELD].values[0]
-        elif currentTime in range(1800, 2100):
-            currentAP = spaceWeatherToday[constants.AP7_FIELD].values[0]
-        else:
-            currentAP = spaceWeatherToday[constants.AP8_FIELD].values[0]
-
-        return currentAP
-
-    # Returns total atmospheric density from datetime, lat, lon, altitude, f107, f07a and ap
-    def getAtmosDensity(self, dt, lon, lat, alt):
-        # Datetime reduced to date since dataset only includes data for whole day, not time
-        spaceWeatherToday = self.spaceWeatherData[self.spaceWeatherData[constants.DATE_FIELD] == dt.date()]
-
-        # Gather data from this row
-        f107 = spaceWeatherToday[constants.F107_FIELD].values[0]
-        f107Avg = spaceWeatherToday[constants.F107_AVG_FIELD].values[0]
-        ap = self.getAP(dt)
-        
-        density = msis.run(dt, lon, lat, alt, f107, f107Avg, [[ap] * 7])[0][0]
-
-        return density
+        self.atmos = Atmosphere()
 
     # Driver function for orbital decay simulation
     def simulate(self, startDatetime, apogee, perigee, inclination, argOfPerigee, raan, trueAnomaly, mass, dragCoefficient, averageArea, timeStep):
