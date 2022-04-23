@@ -40,7 +40,7 @@ def parseOrbit(rawTLE, epoch):
 	# Pyorbital orbital object contains parsed orbital elements from TLE
 	orbital = Orbital("Satellite", line1 = splitTLE[constants.LINE1_INDEX], line2 = splitTLE[constants.LINE2_INDEX])
 
-	# Astropy requires its own time format to be used
+	# astropy requires its own time type to be used
 	epochAstropy = Time(epoch.strftime("%Y-%m-%dT%H:%M:%S"))
 
 	# Gets the not-normalized position and velocity vectors of the orbit
