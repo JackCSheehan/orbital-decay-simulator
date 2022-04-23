@@ -17,9 +17,6 @@ _TRACK_COLOR = "darkblue"
 _LAND_COLOR = "white"
 _WATER_COLOR = "rgb(140, 181, 245)"
 _COUNTRY_COLOR = "lightgray"
-CRAFT_COLOR = "crimson"
-CRAFT_SYMBOL = "star"
-CRAFT_MARKER_SIZE = 20
 
 # Color of launch site marker
 _LAUNCH_SITE_COLOR = "red"
@@ -72,7 +69,7 @@ def plotGroundTrack(orbit):
 		t_span,
 		label = "Ground Track",
 		color = _TRACK_COLOR,
-		marker={"size": CRAFT_MARKER_SIZE, "symbol": CRAFT_SYMBOL, "color": CRAFT_COLOR},
+		marker={"size": 0, "color": "rgba(0, 0, 0, 0)"},
 	)
 
 	# Format map

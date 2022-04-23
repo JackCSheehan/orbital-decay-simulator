@@ -85,21 +85,12 @@ def main():
 
 			with st.spinner("Plotting ground track..."):
 				groundTrackPlot = plotGroundTrack(orbit)
-				elementsTable = {
-					"Epoch": [str(orbit.epoch)],
-					"B* Drag Term": [f"{bstar:.4f}"],
-					"Inclination": [f"{orbit.inc.to(u.deg):.4f}"],
-					"RAAN": [f"{orbit.raan.to(u.deg):.4f}"],
-					"Eccentricity": [f"{orbit.ecc:.4f}"],
-					"Argument of Perigee": [f"{orbit.argp.to(u.deg):.4f}"],
-				}
 
 			"""
-			#### Ground Track
-			Shown below is the ground track of your orbit at the epoch. The star indicates the spacecraft's position at the epoch.
+			### Ground Track
+			Shown below is the ground track of your orbit at the epoch.
 			"""
 			st.plotly_chart(groundTrackPlot, use_container_width = True)
-			st.table(elementsTable)
 
 if __name__ == "__main__":
 	main()
