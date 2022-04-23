@@ -17,3 +17,8 @@ F107_AVG_FIELD = "F10.7_OBS_LAST81"
 
 # Date to cutoff space whether data
 SW_CUTOFF_DATE = datetime.date(2022, 6, 3)
+
+# Indexes for parsing TLE
+NAME_INDEX = 0
+LINE1_INDEX = 1
+LINE2_INDEX = 2

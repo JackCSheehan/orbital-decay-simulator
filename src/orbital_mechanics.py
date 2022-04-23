@@ -1,9 +1,18 @@
 # File containing functions used for calculating orbital elements
+
 import numpy as np
 import pandas as pd
 import math
 import streamlit as st
 from atmosphere import *
+import html
+from pyorbital.orbital import Orbital
+import constants
+from astropy import units as u
+from poliastro.bodies import Earth
+from poliastro.twobody import Orbit
+from astropy.time import Time
+from datetime import *
 
 # Standard gravitational parameter of Earth in km^3/s^2
 MU = 3.986004e5
@@ -14,11 +23,39 @@ RADIUS = 6371
 # Max number of points that the simulation will return in a dataframe
 _MAX_POINTS = 200000
 
-# Number of degrees Earth turns in a second
-_OMEGA_EARTH = 0.00417806712
-
 # J2 constant for Earth
 J2 = 1.08262668e-3
+
+# Returns a poliastro.twobody.Orbit object and a Pyorbital OrbitElements object from given raw TLE string and an epoch datetime
+def parseOrbit(rawTLE, epoch):
+	# Cleanse HTML from raw TLE and strip excess whitespace
+	rawTLE = html.escape(rawTLE)
+	rawTLE = rawTLE.strip()
+		
+	# Throw error if incorrect number of lines included in TLE input
+	splitTLE = rawTLE.split("\n")
+	if len(splitTLE) < 3:
+		raise Exception()
+
+	# Pyorbital orbital object contains parsed orbital elements from TLE
+	orbital = Orbital("Satellite", line1 = splitTLE[constants.LINE1_INDEX], line2 = splitTLE[constants.LINE2_INDEX])
+
+	# Astropy requires its own time format to be used
+	epochAstropy = Time(epoch.strftime("%Y-%m-%dT%H:%M:%S"))
+
+	# Gets the not-normalized position and velocity vectors of the orbit
+	pos, vel = orbital.get_position(epoch, normalize = False)
+
+	# get_position returns numpy arrays. Need to convert them to astropy quantities
+	pos = list(pos) * u.km
+	vel = list(vel) * u.km / u.s
+
+	# Use pos, vel to create a poliastro orbit object
+	poliastroOrbit = Orbit.from_vectors(Earth, pos, vel, epoch = epochAstropy)
+
+	elements = orbital.orbit_elements
+
+	return (poliastroOrbit, elements)
 
 # Throws error if given apogee is < given perigee
 def _checkExtrema(a, p):

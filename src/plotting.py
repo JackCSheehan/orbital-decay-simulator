@@ -1,22 +1,13 @@
 # File containing functions used to plot visualizations
 
 from orbital_mechanics import *
-import plotly.graph_objects as go
 import streamlit as st
 import altair as alt
 from poliastro.earth.plotting import GroundtrackPlotter
 from poliastro.earth import EarthSatellite
-from poliastro.twobody import Orbit
-from poliastro.bodies import Earth
-from astropy import units as u
 from poliastro.util import time_range
-import plotly.graph_objects as go
-from astropy.time import Time
 
-from astropy import units as u
 from poliastro.examples import iss
-from poliastro.bodies import Earth
-from poliastro.twobody import Orbit
 from poliastro.plotting import OrbitPlotter2D, OrbitPlotter3D
 
 # Color of ground track points
@@ -26,9 +17,12 @@ _TRACK_COLOR = "darkblue"
 _LAND_COLOR = "white"
 _WATER_COLOR = "rgb(140, 181, 245)"
 _COUNTRY_COLOR = "lightgray"
+CRAFT_COLOR = "crimson"
+CRAFT_SYMBOL = "star"
+CRAFT_MARKER_SIZE = 20
 
 # Color of launch site marker
-_LAUNCH_SITE_COLOR = "crimson"
+_LAUNCH_SITE_COLOR = "red"
 
 # Plotly projection types
 PROJECTION_TYPES = [
@@ -64,30 +58,13 @@ def plotOrbit():
 
 	return (orbitPlotter2D.plot(iss), orbitPlotter3D.plot(iss))
 
-# Returns Plotly figure of scatter mapbox plot of the ground track of an orbit given: apogee, perigee,
-# inclination, right ascension of the ascending node, argument of perigee, true anomaly, starting lat,
-# and starting lon
+# Returns Plotly plot of a ground track of the given Poliastro orbit
 @st.cache(show_spinner = False)
-def plotGroundTrack(epochDateTime, a, p, i, raan, argOfPerigee, trueAnomaly, startingLat, startingLon, proj = PROJECTION_TYPES[0], showMany = False):
+def plotGroundTrack(orbit):
 	fig = GroundtrackPlotter()
 
-	# Derive orbital elements needed to plot ground track
-	period = calculateOrbitalPeriod(a, p)
-	semiMajoraxis = calculateSemiMajorAxis(a, p)
-	eccentricity = calculateEccentricity(a, p)
-
-	# Multiply period if many orbit tracks are to be shown
-	if showMany:
-		period *= 86400 / period / 2
-
-
-	epoch = Time(epochDateTime.strftime("%Y-%m-%dT%H:%M:%S"))
-	print(epoch)
-
-	# Create objection needed for poliastro GroundPlotter
-	orbit = Orbit.from_classical(Earth, semiMajoraxis * u.km, eccentricity * u.one, i * u.deg, raan * u.deg, argOfPerigee * u.deg, trueAnomaly * u.deg, epoch)
 	sat = EarthSatellite(orbit, None)
-	t_span = time_range(orbit.epoch, end = orbit.epoch + period * u.s)
+	t_span = time_range(orbit.epoch, end = orbit.epoch + orbit.period)
 	
 	# Plot ground track
 	fig.plot(
@@ -95,7 +72,7 @@ def plotGroundTrack(epochDateTime, a, p, i, raan, argOfPerigee, trueAnomaly, sta
 		t_span,
 		label = "Ground Track",
 		color = _TRACK_COLOR,
-		marker={"size": 0, "symbol": "triangle-right"},
+		marker={"size": CRAFT_MARKER_SIZE, "symbol": CRAFT_SYMBOL, "color": CRAFT_COLOR},
 	)
 
 	# Format map
@@ -112,26 +89,13 @@ def plotGroundTrack(epochDateTime, a, p, i, raan, argOfPerigee, trueAnomaly, sta
 		lakecolor = _WATER_COLOR,
 		rivercolor = _WATER_COLOR,
 		countrycolor = _COUNTRY_COLOR,
-		projection_type = proj.lower()
-	)
-
-	fig.fig.update_traces(
-		marker = {"color" : "rgba(0, 0, 0, 0)"},
+		projection_type = "equirectangular"
 	)
 
 	fig.fig.update_layout(
 		showlegend = False,
-		margin = {"l" : 0, "r" : 0, "b" : 0, "t" : 0}
-	)
-
-	# Add launch site point
-	fig.add_trace(
-		go.Scattergeo(
-			lat = [startingLat],
-			lon = [startingLon],
-			name = "Launch Site 🚀",
-			marker = {"color" : _LAUNCH_SITE_COLOR}
-		)
+		margin = {"l" : 0, "r" : 0, "b" : 0, "t" : 0},
+		hoverlabel = {"bgcolor": "white"}
 	)
 
 	return fig.fig
