@@ -92,5 +92,11 @@ def main():
 			"""
 			st.plotly_chart(groundTrackPlot, use_container_width = True)
 
+			with st.spinner("Running simulation..."):
+				sim = Simulator()
+				data = sim.simulate(datetime.now(), orbit, 1)
+			
+			st.table(data)
+
 if __name__ == "__main__":
 	main()

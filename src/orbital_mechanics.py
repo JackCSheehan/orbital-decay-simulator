@@ -15,7 +15,6 @@ from astropy.time import Time
 from datetime import *
 from astropy.coordinates import SphericalRepresentation
 from poliastro.earth.plotting import GroundtrackPlotter
-from astropy.time import TimeDelta
 import numpy as np
 
 # Standard gravitational parameter of Earth in km^3/s^2
@@ -30,15 +29,15 @@ J2 = 1.08262668e-3
 # Used to convert orbit to lat/lon coordinates
 GTP = GroundtrackPlotter()
 
-# Returns the latitude, longitude, and altitude of the given poliastro orbit at the given observation time.
+# Returns the longitude, latitude, and altitude of the given poliastro orbit at the given observation time.
 # The observation time should be an astropy Time object. Code derived from the poliastro ground track
 # plotter source at https://github.com/poliastro/poliastro/blob/e0801613128c419b79cbf17de615e0454ccca78b/src/poliastro/earth/plotting/groundtrack.py
-def getLatLonAlt(orbit, observationTime):
+def getLonLatAlt(orbit, observationTime):
 	rawXYZ, rawObsTime = GTP._get_raw_coords(orbit, observationTime - observationTime)
 	itrsXYZ = GTP._from_raw_to_ITRS(rawXYZ, rawObsTime)
 	itrsLatLon = itrsXYZ.represent_as(SphericalRepresentation)[0]
 
-	return (math.degrees(itrsLatLon.lat.value), math.degrees(itrsLatLon.lon.value), itrsLatLon.distance - constants.EARTH_RADIUS_KM)
+	return (math.degrees(itrsLatLon.lon.value), math.degrees(itrsLatLon.lat.value), itrsLatLon.distance - constants.EARTH_RADIUS_KM)
 
 # Returns a poliastro.twobody.Orbit object and the B* drag parameter from given TLE data and epoch time
 def parseOrbit(rawTLE):

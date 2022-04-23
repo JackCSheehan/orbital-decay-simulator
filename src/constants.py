@@ -1,7 +1,6 @@
 # File containing constants used throughout
 
 import datetime
-from astropy import units as u
 
 # Names of space weather data fields
 DATE_FIELD = "DATE"
@@ -23,4 +22,4 @@ SW_CUTOFF_DATE = datetime.date(2022, 6, 3)
 LINE1_INDEX = 0
 LINE2_INDEX = 1
 
-EARTH_RADIUS_KM = 6378.1366 * u.km
+EARTH_RADIUS_KM = 6378.1366

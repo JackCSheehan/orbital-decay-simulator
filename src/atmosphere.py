@@ -2,6 +2,7 @@
 # calculate values from NRLMSIS 2.0
 
 import pandas as pd
+import numpy as np
 import constants
 from pymsis import msis
 
@@ -28,6 +29,9 @@ class Atmosphere:
         df = df[df[constants.DATE_FIELD] <= constants.SW_CUTOFF_DATE]
 
         self.spaceWeather = df
+
+        # Described in Hoot, Roehrich, 1980: https://celestrak.com/NORAD/documentation/spacetrk.pdf
+        self.referenceDensity = 2.461e-5 * constants.EARTH_RADIUS_KM
 
     # Returns pandas row corresponding to given day from space weather dataframe
     def getDaysSpaceWeather(self, dt):
@@ -60,7 +64,7 @@ class Atmosphere:
 
         return currentAP
 
-    # Returns total atmospheric density from datetime, lat, lon, altitude (km), f107, f07a and ap
+    # Returns total atmospheric density (kg / m^3) from datetime, lat (deg), lon (deg), altitude (km), f107, f07a and ap
     def getDensity(self, dt, lon, lat, alt):
         spaceWeatherToday = self.getDaysSpaceWeather(dt)
 
@@ -72,3 +76,19 @@ class Atmosphere:
         density = msis.run(dt, lon, lat, alt, f107, f107Avg, [[ap] * 7])[0][0]
 
         return density
+
+    # Returns acceleration due to drag vector given datetime, coordinates, altitude, B*, and velocity vector (as numpy array)
+    def getDragAcceleration(self, dt, lon, lat, alt, bstar, vel):
+        velMagnitude = np.linalg.norm(vel)
+        
+        # Acceleration vector should be exactly opposite of velocity vector, so normalize it and flip it
+        accelerationVector = -vel / velMagnitude
+
+        density = self.getDensity(dt, lon, lat, alt)
+
+        accelerationMagnitude = (density * bstar * velMagnitude**2) / self.referenceDensity
+
+        # Acceleration magnitude is in m/s, divide by 1000 to make it km/s
+        accelerationMagnitude /= 1000
+
+        return accelerationVector * accelerationMagnitude
