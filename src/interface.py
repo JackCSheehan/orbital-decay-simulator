@@ -76,44 +76,22 @@ def main():
 		"""
 		rawTLE = st.text_area("")
 
-		"""
-		### Epoch Information
-		Enter the date and time of the epoch corresponding to your spacecraft's orbit in the UTC time zone.
-		"""
-		st.info("Although two-line element sets contain epochs, they may vary in timezone depending on where they are retrieved from. To ensure consistency, the epoch information is collected in addition to the initial TLE data. Please ensure that your epoch is in the UTC timezone.")
-
-		dateCol, hourCol, minCol, secCol = st.columns(4)
-
-		with dateCol:
-			epochDate = st.date_input("Date")
-
-		with hourCol:
-			epochHour = st.number_input("Hour (24-hour format)", min_value = 0, max_value = 23, step = 1)
-
-		with minCol:
-			epochMin = st.number_input("Minutes", min_value = 0, max_value = 59)
-
-		with secCol:
-			epochSec = st.number_input("Seconds", min_value = 0, max_value = 59)
-
-
 		simulateButton = st.form_submit_button("Simulate")
 
 		# Button to confirm entrance of TLE data
 		if len(rawTLE.strip()) > 0 and simulateButton:
 			with st.spinner("Parsing TLE data..."):
-				epoch = datetime.combine(epochDate, time(epochHour, epochMin, epochSec))
-				orbit, elements = parseOrbit(rawTLE, epoch)
+				orbit, bstar = parseOrbit(rawTLE)
 
 			with st.spinner("Plotting ground track..."):
 				groundTrackPlot = plotGroundTrack(orbit)
 				elementsTable = {
-					"Epoch": [epoch.strftime("%A, %B %d, %Y, at %H:%M:%S UTC")],
-					"B* Drag Term": [f"{elements.bstar:.4f}"],
-					"Inclination": [f"{math.degrees(elements.inclination):.4f}°"],
-					"RAAN": [f"{math.degrees(elements.right_ascension):.4f}°"],
-					"Eccentricity": [f"{elements.excentricity:.4f}"],
-					"Argument of Perigee": [f"{math.degrees(elements.arg_perigee):.4f}°"],
+					"Epoch": [str(orbit.epoch)],
+					"B* Drag Term": [f"{bstar:.4f}"],
+					"Inclination": [f"{orbit.inc.to(u.deg):.4f}"],
+					"RAAN": [f"{orbit.raan.to(u.deg):.4f}"],
+					"Eccentricity": [f"{orbit.ecc:.4f}"],
+					"Argument of Perigee": [f"{orbit.argp.to(u.deg):.4f}"],
 				}
 
 			"""

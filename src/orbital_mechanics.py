@@ -13,12 +13,13 @@ from poliastro.bodies import Earth
 from poliastro.twobody import Orbit
 from astropy.time import Time
 from datetime import *
+from astropy.coordinates import SphericalRepresentation
+from poliastro.earth.plotting import GroundtrackPlotter
+from astropy.time import TimeDelta
+import numpy as np
 
 # Standard gravitational parameter of Earth in km^3/s^2
 MU = 3.986004e5
-
-# Earth radius in km
-RADIUS = 6371
 
 # Max number of points that the simulation will return in a dataframe
 _MAX_POINTS = 200000
@@ -26,22 +27,36 @@ _MAX_POINTS = 200000
 # J2 constant for Earth
 J2 = 1.08262668e-3
 
-# Returns a poliastro.twobody.Orbit object and a Pyorbital OrbitElements object from given raw TLE string and an epoch datetime
-def parseOrbit(rawTLE, epoch):
+# Used to convert orbit to lat/lon coordinates
+GTP = GroundtrackPlotter()
+
+# Returns the latitude, longitude, and altitude of the given poliastro orbit at the given observation time.
+# The observation time should be an astropy Time object. Code derived from the poliastro ground track
+# plotter source at https://github.com/poliastro/poliastro/blob/e0801613128c419b79cbf17de615e0454ccca78b/src/poliastro/earth/plotting/groundtrack.py
+def getLatLonAlt(orbit, observationTime):
+	rawXYZ, rawObsTime = GTP._get_raw_coords(orbit, observationTime - observationTime)
+	itrsXYZ = GTP._from_raw_to_ITRS(rawXYZ, rawObsTime)
+	itrsLatLon = itrsXYZ.represent_as(SphericalRepresentation)[0]
+
+	return (math.degrees(itrsLatLon.lat.value), math.degrees(itrsLatLon.lon.value), itrsLatLon.distance - constants.EARTH_RADIUS_KM)
+
+# Returns a poliastro.twobody.Orbit object and the B* drag parameter from given TLE data and epoch time
+def parseOrbit(rawTLE):
 	# Cleanse HTML from raw TLE and strip excess whitespace
 	rawTLE = html.escape(rawTLE)
 	rawTLE = rawTLE.strip()
 		
 	# Throw error if incorrect number of lines included in TLE input
 	splitTLE = rawTLE.split("\n")
-	if len(splitTLE) < 3:
+	if len(splitTLE) != 2:
 		raise Exception()
 
 	# Pyorbital orbital object contains parsed orbital elements from TLE
 	orbital = Orbital("Satellite", line1 = splitTLE[constants.LINE1_INDEX], line2 = splitTLE[constants.LINE2_INDEX])
+	epoch = orbital.orbit_elements.epoch
 
 	# astropy requires its own time type to be used
-	epochAstropy = Time(epoch.strftime("%Y-%m-%dT%H:%M:%S"))
+	epochAstropy = Time(epoch.item().strftime("%Y-%m-%dT%H:%M:%S"))
 
 	# Gets the not-normalized position and velocity vectors of the orbit
 	pos, vel = orbital.get_position(epoch, normalize = False)
@@ -53,9 +68,7 @@ def parseOrbit(rawTLE, epoch):
 	# Use pos, vel to create a poliastro orbit object
 	poliastroOrbit = Orbit.from_vectors(Earth, pos, vel, epoch = epochAstropy)
 
-	elements = orbital.orbit_elements
-
-	return (poliastroOrbit, elements)
+	return (poliastroOrbit, orbital.orbit_elements.bstar)
 
 # Throws error if given apogee is < given perigee
 def _checkExtrema(a, p):
