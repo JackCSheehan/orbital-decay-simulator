@@ -45,7 +45,7 @@ def parseOrbit(rawTLE):
 	rawTLE = html.escape(rawTLE)
 	rawTLE = rawTLE.strip()
 		
-	# Throw error if incorrect number of lines included in TLE input
+	# Error checking prior to passing to pyorbital class
 	splitTLE = rawTLE.split("\n")
 	if len(splitTLE) != 2:
 		raise Exception()

@@ -21,19 +21,14 @@ class Simulator:
             
             return duKep + duAd
 
-        data = {"time": [], "raan": [], "orbit": []}
-        minutes = 0
+        data = []
 
         for _ in range(0, 100):
-            minutes += 1
-
             # Simulate nodal precession
             orbit = orbit.propagate(1 * u.min, method = cowell, f = j2Perturbation)
 
             # Record data
-            data["time"].append(minutes)
-            data["raan"].append(str(orbit.raan.to(u.deg)))
-            data["orbit"].append(str(orbit))
+            data.append(orbit)
 
         return data
         

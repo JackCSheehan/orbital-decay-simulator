@@ -1,60 +1,30 @@
 # File containing functions used to plot visualizations
 
+from turtle import showturtle
+from matplotlib.pyplot import figure
 from orbital_mechanics import *
 import streamlit as st
 import altair as alt
+import plotly.graph_objects as go
+import plotly.express as px
 from poliastro.earth.plotting import GroundtrackPlotter
 from poliastro.earth import EarthSatellite
+from poliastro.bodies import Earth
 from poliastro.util import time_range
+from poliastro.plotting import StaticOrbitPlotter
 
 from poliastro.examples import iss
 from poliastro.plotting import OrbitPlotter2D, OrbitPlotter3D
+import sys
 
-# Color of ground track points
-_TRACK_COLOR = "darkblue"
+# Color of ground track points and orbit outlines
+ORBIT_COLOR = "red"
 
 # Map element colors
-_LAND_COLOR = "white"
-_WATER_COLOR = "rgb(140, 181, 245)"
-_COUNTRY_COLOR = "lightgray"
-
-# Color of launch site marker
-_LAUNCH_SITE_COLOR = "red"
-
-# Plotly projection types
-PROJECTION_TYPES = [
-	"Equirectangular",
-	"Mercator",
-	"Orthographic",
-	"Natural Earth",
-	"Kavrayskiy7",
-	"Miller",
-	"Robinson",
-	"Eckert4",
-	"Azimuthal Equal Area",
-	"Azimuthal Equidistant",
-	"Conic Equal Area",
-	"Conic Conformal",
-	"Conic Equidistant",
-	"Gnomonic",
-	"Stereographic",
-	"Mollweide",
-	"Hammer",
-	"Transverse Mercator",
-	"Winkel Tripel",
-	"Aitoff",
-	"Sinusoidal"
-]
-
-def plotOrbit():
-	orbit = iss
-
-	orbitPlotter2D = OrbitPlotter2D()
-
-	orbitPlotter3D = OrbitPlotter3D()
-
-	return (orbitPlotter2D.plot(iss), orbitPlotter3D.plot(iss))
-
+LAND_COLOR = "white"
+WATER_COLOR = "#2a7bd1"	# Color used to match the poliastro Earth color
+COUNTRY_COLOR = "lightgray"
+	
 # Returns Plotly plot of a ground track of the given Poliastro orbit
 @st.cache(show_spinner = False)
 def plotGroundTrack(orbit):
@@ -68,7 +38,7 @@ def plotGroundTrack(orbit):
 		sat,
 		t_span,
 		label = "Ground Track",
-		color = _TRACK_COLOR,
+		color = ORBIT_COLOR,
 		marker={"size": 0, "color": "rgba(0, 0, 0, 0)"},
 	)
 
@@ -81,11 +51,11 @@ def plotGroundTrack(orbit):
 		showlakes = True,
 		showcountries = True,
 		showrivers = True,
-		oceancolor = _WATER_COLOR,
-		landcolor = _LAND_COLOR,
-		lakecolor = _WATER_COLOR,
-		rivercolor = _WATER_COLOR,
-		countrycolor = _COUNTRY_COLOR,
+		oceancolor = WATER_COLOR,
+		landcolor = LAND_COLOR,
+		lakecolor = WATER_COLOR,
+		rivercolor = WATER_COLOR,
+		countrycolor = COUNTRY_COLOR,
 		projection_type = "equirectangular"
 	)
 
@@ -96,6 +66,34 @@ def plotGroundTrack(orbit):
 	)
 
 	return fig.fig
+
+# Returns formatted 2D and 3D plot figures of the given orbit using Poliastro's plotting classes
+def plotOrbit(orbit):
+	fig2D = OrbitPlotter2D().plot(orbit, color = ORBIT_COLOR)
+	fig2D.update_layout(showlegend = False,
+		paper_bgcolor = "rgba(0, 0, 0, 0)",
+		plot_bgcolor = "rgba(0, 0, 0, 0)",
+		margin = {"l": 0, "r": 0, "b": 0, "t": 0, "pad": 0},
+		xaxis = {"visible": False},
+		yaxis = {"visible": False}
+	)
+
+	fig3D = OrbitPlotter3D().plot(orbit, color = ORBIT_COLOR)
+	fig3D.update_layout(scene = {
+			"xaxis": {
+				"visible": False
+			},
+			"yaxis": {
+				"visible": False
+			},
+			"zaxis": {
+				"visible": False
+			},
+		},
+		margin = {"l": 0, "r": 0, "b": 0, "t": 0, "pad": 0}
+	)
+
+	return (fig2D, fig3D)
 
 # Returns Altair chart visualizing telemetry data. Takes telemetry dataframe, name of column to visualize over time, and the
 # Y-axis label for the plot

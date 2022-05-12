@@ -83,20 +83,31 @@ def main():
 			with st.spinner("Parsing TLE data..."):
 				orbit, bstar = parseOrbit(rawTLE)
 
-			with st.spinner("Plotting ground track..."):
+			with st.spinner("Generating orbit visualizations..."):
 				groundTrackPlot = plotGroundTrack(orbit)
+				fig2D, fig3D = plotOrbit(orbit)
 
 			"""
-			### Ground Track
-			Shown below is the ground track of your orbit at the epoch.
+			### Orbit Visualizations
 			"""
 			st.plotly_chart(groundTrackPlot, use_container_width = True)
+			st.markdown("<center><i>Ground track plot</i></center>", unsafe_allow_html = True)
+			
+			"---"
 
+			visCol1, visCol2 = st.columns(2)
+
+			with visCol1:
+				st.plotly_chart(fig2D, use_container_width = True)
+				st.markdown("<center><i>2D orbit plot at epoch</i></center>", unsafe_allow_html = True)
+				
+			with visCol2:
+				st.plotly_chart(fig3D, use_container_width = True)
+				st.markdown("<center><i>3D orbit plot at epoch</i></center>", unsafe_allow_html = True)
+				
 			with st.spinner("Running simulation..."):
 				sim = Simulator()
 				data = sim.simulate(datetime.now(), orbit, 1)
-			
-			st.table(data)
-
+		
 if __name__ == "__main__":
 	main()
