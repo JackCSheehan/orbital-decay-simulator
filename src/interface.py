@@ -88,6 +88,7 @@ def main():
 				fig2D, fig3D = plotOrbit(orbit)
 
 			"""
+			---
 			### Orbit Visualizations
 			"""
 			st.plotly_chart(groundTrackPlot, use_container_width = True)
@@ -106,8 +107,30 @@ def main():
 				st.markdown("<center><i>3D orbit plot at epoch</i></center>", unsafe_allow_html = True)
 				
 			with st.spinner("Running simulation..."):
-				sim = Simulator()
-				data = sim.simulate(datetime.now(), orbit, 1)
+				data = Simulator().simulate(datetime.now(), orbit, 1)
 		
+			with st.spinner("Generating telemetry visualizations..."):
+				raanChart, periodChart, semiMajorAxisChart, eccentricityChart, velocityChart = plotTelemetry(data)
+
+			"""
+			---
+			### Telemetry Visualizations
+			"""
+
+			"#### RAAN Over Time"
+			st.plotly_chart(raanChart, use_container_width = True)
+
+			"#### Period Over Time"
+			st.plotly_chart(periodChart, use_container_width = True)
+
+			"#### Semi-Major Axis Over Time"
+			st.plotly_chart(semiMajorAxisChart, use_container_width = True)
+
+			"#### Eccentricity Over Time"
+			st.plotly_chart(eccentricityChart, use_container_width = True)
+
+			"#### Velocity Over Time"
+			st.plotly_chart(velocityChart, use_container_width = True)
+
 if __name__ == "__main__":
 	main()

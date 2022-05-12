@@ -1,24 +1,22 @@
 # File containing functions used to plot visualizations
 
-from turtle import showturtle
-from matplotlib.pyplot import figure
 from orbital_mechanics import *
 import streamlit as st
-import altair as alt
 import plotly.graph_objects as go
-import plotly.express as px
+import numpy as np
+
 from poliastro.earth.plotting import GroundtrackPlotter
 from poliastro.earth import EarthSatellite
-from poliastro.bodies import Earth
 from poliastro.util import time_range
-from poliastro.plotting import StaticOrbitPlotter
 
-from poliastro.examples import iss
 from poliastro.plotting import OrbitPlotter2D, OrbitPlotter3D
-import sys
 
 # Color of ground track points and orbit outlines
 ORBIT_COLOR = "red"
+
+# Colors for telemetry plots
+GRID_COLOR = "#414141"
+TELEMETRY_COLOR = "red"
 
 # Map element colors
 LAND_COLOR = "white"
@@ -95,20 +93,50 @@ def plotOrbit(orbit):
 
 	return (fig2D, fig3D)
 
+# Returns a Plotly figure for the data, label, and title
+def generateTelementryChart(data, label):
+	fig = go.Figure(
+		data = go.Scatter(
+			x = list(range(0, len(data))),
+			y = data,
+			marker = {
+				"color": TELEMETRY_COLOR
+			}
+		),
+		layout = {
+			"paper_bgcolor": "rgba(0, 0, 0, 0)",
+			"plot_bgcolor": "rgba(0, 0, 0, 0)",
+			"margin": {"l": 0, "r": 0, "t": 0, "b": 0, "pad": 0},
+		},
+	)
+
+	fig.update_xaxes(title = "Time (s)", linecolor = GRID_COLOR, gridcolor = GRID_COLOR)
+	fig.update_yaxes(title = label, linecolor = GRID_COLOR, gridcolor = GRID_COLOR)
+
+	return fig
+
 # Returns Altair chart visualizing telemetry data. Takes telemetry dataframe, name of column to visualize over time, and the
 # Y-axis label for the plot
-def plotTelemetry(telemetry, column, label):
-	# Get smallest and largest datapoints for scaling
-	smallestY = telemetry[column].min()
-	largestY = telemetry[column].max()
+def plotTelemetry(orbits):
+	# Initialize empty list for each telemetry item
+	raanData, periodData, semiMajorAxisData, eccentricityData, velocityData = ([] for _ in range(5))
 
-	smallestX = telemetry["time"].min()
-	largestX = telemetry["time"].max()
+	time = []
 
-	return alt.Chart(telemetry).mark_line().encode(
-		x = alt.X("time", axis = alt.Axis(title = "Time (s)"), scale = alt.Scale(domain = (smallestX, largestX))),
-		y = alt.Y(column, axis = alt.Axis(title = label), scale = alt.Scale(domain = (smallestY, largestY))),
-		tooltip = ["time", column]
-	).add_selection(
-		alt.selection_interval(bind = "scales")
-	)
+	# Extract telemtry data from each orbit object
+	for t, orbit in enumerate(orbits):
+		time.append(t)
+
+		raanData.append(orbit.raan.value)
+		periodData.append(orbit.period.value)
+		semiMajorAxisData.append(orbit.a.value)
+		eccentricityData.append(orbit.ecc.value)
+		velocityData.append(np.linalg.norm(orbit.v.value))
+
+	raanChart = generateTelementryChart(raanData, "RAAN (°)")
+	periodChart = generateTelementryChart(periodData, "Period (s)")
+	semiMajorAxisChart = generateTelementryChart(semiMajorAxisData, "Semi-Major Axis (km)")
+	eccentricityChart = generateTelementryChart(eccentricityData, "Eccentricity")
+	velocityChart = generateTelementryChart(velocityData, "Velocity (km / s)")
+
+	return (raanChart, periodChart, semiMajorAxisChart, eccentricityChart, velocityChart)
